@@ -1,0 +1,111 @@
+tool
+extends StaticBody
+
+export(int) var Zoom = 1 setget _setZoom
+export(float) var TileX = 0
+export(float) var TileY = 0
+export(float) var Size  = 0 setget _setSize
+export(float, 0.1, 50, 0.1) var HeigthMultiplier = 1 setget _setHeightM
+export(int, 1, 1024, 1) var Subset = 1 setget _setSubSection
+export(bool) var SubsetShift = false
+export(int, 1, 32) var DivideInto = 4 setget _setDivideInto
+export(String, FILE, "*.png, *.jpg, *.jpeg") var TerrainHeightMapPath setget _setMap
+export(String, FILE, "*.png, *.jpg, *.jpeg") var TerrainTexturePath setget _setMapTexture
+export(String, FILE, "*.tres") var MeshPath
+export(Mesh) var ShapeMesh
+
+var hmp = preload("res://TerrainLoader/HeightmapParser.gd")
+var NumberOfSections = 4
+var HeightMap = []
+var TerrainImage = Image.new()
+var TerrainTextureImage = Image.new()
+
+func _setZoom(_newvalue):
+	if(Zoom != _newvalue):
+		Zoom = _newvalue
+		SetMapShapeAndCollision()
+	
+func _setSize(_newvalue):
+	if(Size != _newvalue):
+		Size = _newvalue
+		SetMapShapeAndCollision()
+	
+func _setHeightM(_newvalue):
+	if(HeigthMultiplier != _newvalue):
+		HeigthMultiplier = _newvalue
+		SetMapShapeAndCollision()
+	
+func _setSubSection(_newvalue):
+	if(Subset != _newvalue):
+		Subset = _FixSubset(_newvalue)
+		SetMapShapeAndCollision()
+	
+func _setDivideInto(_newvalue):
+	if(DivideInto != _newvalue):
+		DivideInto = _newvalue
+		Subset = _FixSubset(Subset)
+		SetMapShapeAndCollision()
+	
+func _setMap(_newvalue):
+	if(TerrainHeightMapPath != _newvalue):
+		TerrainHeightMapPath = _newvalue
+		TerrainImage.load(TerrainHeightMapPath)
+		SetMapShapeAndCollision()
+		
+func _setMapTexture(_newvalue):
+	if(TerrainTexturePath != _newvalue):
+		TerrainTexturePath = _newvalue
+		TerrainTextureImage.load(TerrainTexturePath)
+		SetMapShapeAndCollision()
+	
+func _FixSubset(_subsVal):
+	NumberOfSections = DivideInto * DivideInto
+	if(_subsVal > NumberOfSections):
+		_subsVal = NumberOfSections
+	return _subsVal
+
+
+func _ready():
+	SetMapShapeAndCollision()
+
+func initialize_map(_zoom = 1, _tilex = 0, _tiley = 0, _hmultiplier = 1, _divide = 4, _tile = 1, _hm_img = Image.new(), _txtr_img = Image.new(), _mesh_path = null, _subsetShift = true):
+	HeigthMultiplier = _hmultiplier
+	Zoom = _zoom
+	TileX = _tilex
+	TileY = _tiley
+	DivideInto = _divide
+	Subset = _tile
+	SubsetShift = _subsetShift
+	TerrainImage = _hm_img
+	TerrainTextureImage = _txtr_img
+	MeshPath = _mesh_path
+	if(_hm_img.get_size().length() > 0):
+		SetMapShapeAndCollision()
+	
+func SetMapShapeAndCollision():
+	if(ShapeMesh != null):
+		$TerrainMesh.mesh = ShapeMesh
+	if($TerrainMesh.mesh == null 
+		&& TerrainImage != null
+		&& TerrainTextureImage != null
+		&& !TerrainImage.is_empty()
+		&& !TerrainTextureImage.is_empty()):
+		var hmTool = hmp.new()
+#		HeightMap = hmTool.GenerateHeightMap(TerrainImage, TerrainTextureImage, Subset, DivideInto)
+#		$TerrainMesh.mesh = hmTool.createMesh(HeightMap, Size, HeigthMultiplier, Zoom, Subset, DivideInto, SubsetShift, MeshPath)
+#		(_hm_img = Image.new(), _txtr_img = Image.new(), total_size = 0, height_multiplier = 1, Zoom = 1, _subset = 1, _divideinto = 4, _remove_offset = false, _mesh_path = null):
+		$TerrainMesh.mesh = hmTool.createMeshFromImage(TerrainImage, TerrainTextureImage, 0, HeigthMultiplier, Zoom, Subset, DivideInto, false)
+		ShapeMesh = $TerrainMesh.mesh
+		if(MeshPath != null):
+			ResourceSaver.save(MeshPath, $TerrainMesh.mesh)
+		if(SubsetShift):
+			var Coords = hmTool._subsetToXYCoords(Subset, DivideInto)
+			var actual_size = TerrainImage.get_width() / DivideInto
+			var dist = 1
+			if(Size != 0):
+				actual_size = Size
+			var x_shift = Coords["y"] * (actual_size - dist) - (actual_size - dist) * (DivideInto/2 + 0.5)
+			var z_shift = - Coords["x"] * (actual_size - dist) + (actual_size - dist) * (DivideInto/2 + 0.5)
+			self.translate(Vector3(x_shift, 0, z_shift))
+		
+	

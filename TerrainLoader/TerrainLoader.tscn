@@ -1,0 +1,59 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://TerrainLoader/TerrainLoader.gd" type="Script" id=1]
+
+[sub_resource type="Image" id=1]
+
+data = {
+"data": PoolByteArray(  ),
+"format": "Lum8",
+"height": 0,
+"mipmaps": false,
+"width": 0
+}
+
+[sub_resource type="Image" id=2]
+
+data = {
+"data": PoolByteArray(  ),
+"format": "Lum8",
+"height": 0,
+"mipmaps": false,
+"width": 0
+}
+
+[node name="MapLoader" type="Spatial" index="0"]
+
+script = ExtResource( 1 )
+_sections_unfolded = [ "Transform" ]
+access_token = "pk.eyJ1IjoiZGlnaXRhbGtpIiwiYSI6ImNqNXh1MDdibTA4bTMycnAweDBxYXBpYncifQ.daSatfva2eG-95QHWC9Mig"
+lon = 0
+lat = 0
+zoom_level = 1
+HeighMultiplier = 1
+tilex = 1
+tiley = 1
+pxlx = 0
+pxly = 0
+TerrainHeightMap = SubResource( 1 )
+TerrainTexture = SubResource( 2 )
+
+[node name="MapLoaderHeightMap" type="HTTPRequest" parent="." index="0"]
+
+download_file = ""
+use_threads = true
+body_size_limit = -1
+max_redirects = 8
+
+[node name="MapLoaderTexture" type="HTTPRequest" parent="." index="1"]
+
+download_file = ""
+use_threads = true
+body_size_limit = -1
+max_redirects = 8
+
+[connection signal="request_completed" from="MapLoaderHeightMap" to="." method="_on_MapLoaderHeightMap_request_completed"]
+
+[connection signal="request_completed" from="MapLoaderTexture" to="." method="_on_MapLoaderTexture_request_completed"]
+
+

@@ -1,0 +1,38 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=3
+
+[application]
+
+config/name="TerrainLoader"
+run/main_scene="res://test.tscn"
+config/icon="res://icon.png"
+
+[editor_plugins]
+
+enabled=PoolStringArray( "godot-git-control.funabab" )
+
+[physics]
+
+3d/physics_engine="Bullet"
+
+[rendering]
+
+quality/intended_usage/framebuffer_allocation=3
+quality/filters/anisotropic_filter_level=3
+quality/directional_shadow/size=2048
+quality/shadow_atlas/size=2048
+quality/shadows/filter_mode=0
+quality/reflections/high_quality_ggx=false
+quality/depth_prepass/enable=false
+quality/subsurface_scattering/quality=0
+quality/subsurface_scattering/weight_samples=false
+quality/voxel_cone_tracing/high_quality=false
+quality/depth/hdr=false
+environment/default_environment="res://default_env.tres"
