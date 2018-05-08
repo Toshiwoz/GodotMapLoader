@@ -35,6 +35,7 @@ func _get_pxly():
 # FLORENCE - lat: 43.771388888889 lon: 11.254166666667
 # IGUAZU FALLS lat: -25.695277777778 lon: -54.436666666667
 # ECUADOR SIERRA lat: -0.35434 lon: -78.40207
+# MOUNT FUJI lat: 35.36 lon: 138.73
 
 func _setZoom(_newval):	
 	if(zoom_level != _newval):
@@ -64,7 +65,7 @@ func _setCoords(_lon = 0, _lat = 0, _zoom = 1):
 		print("Setting coords")
 		TerrainHeightMap = Image.new()
 		TerrainTexture = Image.new()
-		var tile = smf.latlon_to_tile(_lat, _lon, _zoom)
+		var tile = smf.latlon_to_tile_pxl(_lat, _lon, _zoom)
 		tilex = tile["tilex"]
 		tiley = tile["tiley"]
 		pxlx = tile["pxlx"]

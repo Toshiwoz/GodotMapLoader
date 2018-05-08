@@ -1,7 +1,6 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=2 format=2]
 
 [ext_resource path="res://assets/maujoe.camera_control/scripts/camera_control.gd" type="Script" id=1]
-[ext_resource path="res://TerrainLoader/TerrainShaper.tscn" type="PackedScene" id=2]
 
 [node name="MainScene" type="Spatial" index="0"]
 
@@ -69,44 +68,5 @@ left_action = "ui_left"
 right_action = "ui_right"
 use_gui = true
 gui_action = "ui_cancel"
-
-[node name="ts1" parent="." index="2" instance=ExtResource( 2 )]
-
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -63, 0, 63 )
-_sections_unfolded = [ "Transform" ]
-Zoom = 12
-DivideInto = 2
-TerrainHeightMapPath = "res://response_hm.png"
-TerrainTexturePath = "res://response_txtr.png"
-
-[node name="ts2" parent="." index="3" instance=ExtResource( 2 )]
-
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -63, 0, -63 )
-_sections_unfolded = [ "Transform" ]
-Zoom = 12
-Subset = 2
-DivideInto = 2
-TerrainHeightMapPath = "res://response_hm.png"
-TerrainTexturePath = "res://response_txtr.png"
-
-[node name="ts3" parent="." index="4" instance=ExtResource( 2 )]
-
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 64, 0, 64 )
-_sections_unfolded = [ "Transform" ]
-Zoom = 12
-Subset = 3
-DivideInto = 2
-TerrainHeightMapPath = "res://response_hm.png"
-TerrainTexturePath = "res://response_txtr.png"
-
-[node name="ts4" parent="." index="5" instance=ExtResource( 2 )]
-
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 64, 0, -63 )
-_sections_unfolded = [ "Transform" ]
-Zoom = 12
-Subset = 4
-DivideInto = 2
-TerrainHeightMapPath = "res://response_hm.png"
-TerrainTexturePath = "res://response_txtr.png"
 
 

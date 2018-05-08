@@ -93,8 +93,7 @@ func SetMapShapeAndCollision():
 		var hmTool = hmp.new()
 #		HeightMap = hmTool.GenerateHeightMap(TerrainImage, TerrainTextureImage, Subset, DivideInto)
 #		$TerrainMesh.mesh = hmTool.createMesh(HeightMap, Size, HeigthMultiplier, Zoom, Subset, DivideInto, SubsetShift, MeshPath)
-#		(_hm_img = Image.new(), _txtr_img = Image.new(), total_size = 0, height_multiplier = 1, Zoom = 1, _subset = 1, _divideinto = 4, _remove_offset = false, _mesh_path = null):
-		$TerrainMesh.mesh = hmTool.createMeshFromImage(TerrainImage, TerrainTextureImage, 0, HeigthMultiplier, Zoom, Subset, DivideInto, false)
+		$TerrainMesh.mesh = hmTool.createMeshFromImage(TerrainImage, TerrainTextureImage, 0, HeigthMultiplier, Zoom, TileX, TileY, Subset, DivideInto, false)
 		ShapeMesh = $TerrainMesh.mesh
 		if(MeshPath != null):
 			ResourceSaver.save(MeshPath, $TerrainMesh.mesh)

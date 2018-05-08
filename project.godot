@@ -11,7 +11,7 @@ config_version=3
 [application]
 
 config/name="TerrainLoader"
-run/main_scene="res://test.tscn"
+run/main_scene="res://MainScene.tscn"
 config/icon="res://icon.png"
 
 [editor_plugins]

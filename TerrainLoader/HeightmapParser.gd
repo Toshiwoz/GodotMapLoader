@@ -1,7 +1,9 @@
 tool
 extends Spatial
 
+var earth_mat = preload("res://TerrainLoader/TerrainMaterial.tres")
 var smf = preload("res://TerrainLoader/slippy_map_functions.gd")
+var earth_circ = smf.radius_to_circ(smf.EARTH_RADIUS)
 
 func _init():
 	smf = preload("res://TerrainLoader/slippy_map_functions.gd")
@@ -93,7 +95,7 @@ func createMesh(ht, total_size = 0, height_multiplier = 1, Zoom = 1, _subset = 1
 		var width = ht.size()
 		var lenght = ht[0].size()
 		print("Length %d - Width %d" % [lenght, width])
-		var pxl_mtrs = smf.adjust_dist_from_latzoom(40248000, 0, Zoom)
+		var pxl_mtrs = smf.adjust_dist_from_latzoom(earth_circ, 0, Zoom)
 		var size = float(ht.size())
 		if(total_size == null):
 			total_size = 0
@@ -168,7 +170,8 @@ func createMesh(ht, total_size = 0, height_multiplier = 1, Zoom = 1, _subset = 1
 		+ " finished in %.2f seconds" % ((endtt - startt)/1000))
 		return mesh
 
-func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_size = 0, height_multiplier = 1, Zoom = 1, _subset = 1, _divideinto = 4, _remove_offset = false, _mesh_path = null):
+func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_size = 0, height_multiplier = 1, Zoom = 1, _tilex = 0, _tiley = 0, _subset = 1, _divideinto = 4, _remove_offset = false, _mesh_path = null):
+	var color_vertices = false
 	var coords = _subsetToXYCoords(_subset, _divideinto)
 	var lastvalx = 1
 	if(coords["x"] == _divideinto):
@@ -189,7 +192,12 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		var rangeY = range(heigth - 1)
 		var minh = 999999
 		var maxh = 0
-		var pxl_mtrs = smf.adjust_dist_from_latzoom(40248000, 0, Zoom)
+				
+		var lat_lon_t = smf.tile_to_latlon(_tilex, _tiley, Zoom)
+		var lat_lon_b = smf.tile_to_latlon(_tilex, _tiley, Zoom)
+		var pxl_mtrs_max = smf.adjust_dist_from_latzoom(earth_circ, 0, Zoom)
+		var pxl_mtrs_t = smf.adjust_dist_from_latzoom(earth_circ, lat_lon_t["lat"], Zoom)
+		var pxl_mtrs_b = smf.adjust_dist_from_latzoom(earth_circ, lat_lon_b["lat"], Zoom)
 		var size = float(heigth)
 		if(total_size == null):
 			total_size = 0
@@ -197,10 +205,12 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 			size = total_size
 		var half_size = size /2.0
 		var dist = float (size / width)
+		var dist_proportion_t = dist * pxl_mtrs_t / pxl_mtrs_max
+		var dist_proportion_b = dist * pxl_mtrs_b / pxl_mtrs_max
 		# Altitude should be proportional to size
 		# Height multiplier is used to enhace altitudes,
 		# a value of 1 maintain real altitudes
-		var altitude_multiplier =  float(height_multiplier * dist / pxl_mtrs)
+		var altitude_multiplier =  float(height_multiplier * dist / pxl_mtrs_t)
 		surf_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
 #		surf_tool.add_color(Color(1,1,1))
 		
@@ -226,12 +236,22 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 				if(alt_tl > maxh):
 					maxh = alt_tl
 		for y in rangeY:
+			# getting adjusted distances
+			# as it should change only on latitute change, we adjust it here
+			lat_lon_t = smf.tile_to_latlon(_tilex, float(_tiley) + float(y)/float(width), Zoom)
+			lat_lon_b = smf.tile_to_latlon(_tilex, float(_tiley) + float(y + 1)/float(width), Zoom)
+			pxl_mtrs_t = smf.adjust_dist_from_latzoom(earth_circ, lat_lon_t["lat"], Zoom)
+			pxl_mtrs_b = smf.adjust_dist_from_latzoom(earth_circ, lat_lon_b["lat"], Zoom)
+			altitude_multiplier =  float(height_multiplier * dist / pxl_mtrs_max)
+			dist_proportion_t = dist * pxl_mtrs_t / pxl_mtrs_max
+			dist_proportion_b = dist * pxl_mtrs_b / pxl_mtrs_max
+			print("For Tile x=%f y=%f Dist T: %f, b: %f" % [_tilex, float(_tiley) + float(y)/float(width), dist_proportion_t, dist_proportion_b])
 			for x in rangeX:
-					
-#				txr_tl = txtr_sbs_img.get_pixel(x, y)
-#				txr_tr = txtr_sbs_img.get_pixel(x + 1, y)
-#				txr_bl = txtr_sbs_img.get_pixel(x, y + 1)
-#				txr_br = txtr_sbs_img.get_pixel(x + 1, y + 1)
+				if(color_vertices):
+					txr_tl = txtr_sbs_img.get_pixel(x, y)
+					txr_tr = txtr_sbs_img.get_pixel(x + 1, y)
+					txr_bl = txtr_sbs_img.get_pixel(x, y + 1)
+					txr_br = txtr_sbs_img.get_pixel(x + 1, y + 1)
 				if(_remove_offset):
 					alt_tl = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y)) - minh
 					alt_tr = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y)) - minh
@@ -243,48 +263,52 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 					alt_bl = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y + 1))
 					alt_br = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y + 1))
 
-				bottomleft = Vector3(x * dist - half_size, alt_bl * altitude_multiplier, (y + 1) * dist - half_size)
-				upperleft = Vector3(x * dist - half_size, alt_tl * altitude_multiplier, (y) * dist - half_size)
-				upperright = Vector3((x + 1) * dist - half_size, alt_tr * altitude_multiplier, (y) * dist - half_size)
-				bottomright = Vector3((x + 1) * dist - half_size, alt_br * altitude_multiplier, (y + 1) * dist - half_size)
-				
+				bottomleft = Vector3((x - half_size) * dist_proportion_b, alt_bl * altitude_multiplier, (y + 1) * dist - half_size)
+				upperleft = Vector3((x - half_size) * dist_proportion_t, alt_tl * altitude_multiplier, (y) * dist - half_size)
+				upperright = Vector3((x + 1 - half_size) * dist_proportion_t, alt_tr * altitude_multiplier, (y) * dist - half_size)
+				bottomright = Vector3((x + 1 - half_size) * dist_proportion_b, alt_br * altitude_multiplier, (y + 1) * dist - half_size)
+				if(color_vertices):
+					surf_tool.add_color(txr_tl)
 				surf_tool.add_smooth_group(true)
-#				surf_tool.add_color(txr_tl)
-				surf_tool.add_uv(Vector2((half_size + upperleft.x)/width, (half_size + upperleft.z)/heigth))
+				surf_tool.add_uv(Vector2(float(x)/float(width), float(y)/float(heigth)))
 				surf_tool.add_vertex(upperleft)
-
+				if(color_vertices):
+					surf_tool.add_color(txr_tr)
 				surf_tool.add_smooth_group(true)
-#				surf_tool.add_color(txr_tr)
-				surf_tool.add_uv(Vector2((half_size + upperright.x)/width, (half_size + upperright.z)/heigth))
+				surf_tool.add_uv(Vector2(float(x+1)/float(width), float(y)/float(heigth)))
 				surf_tool.add_vertex(upperright)
 				
+				if(color_vertices):
+					surf_tool.add_color(txr_br)
 				surf_tool.add_smooth_group(true)
-#				surf_tool.add_color(txr_br)
-				surf_tool.add_uv(Vector2((half_size + bottomright.x)/width, (half_size + bottomright.z)/heigth))
-				surf_tool.add_vertex(bottomright)
-
-				surf_tool.add_smooth_group(true)
-#				surf_tool.add_color(txr_tl)
-				surf_tool.add_uv(Vector2((half_size + upperleft.x)/width, (half_size + upperleft.z)/heigth))
-				surf_tool.add_vertex(upperleft)
-
-				surf_tool.add_smooth_group(true)
-#				surf_tool.add_color(txr_tr)
-				surf_tool.add_uv(Vector2((half_size + bottomright.x)/width, (half_size + bottomright.z)/heigth))
+				surf_tool.add_uv(Vector2(float(x+1)/float(width), float(y+1)/float(heigth)))
 				surf_tool.add_vertex(bottomright)
 				
+				if(color_vertices):
+					surf_tool.add_color(txr_tl)
 				surf_tool.add_smooth_group(true)
-#				surf_tool.add_color(txr_bl)
-				surf_tool.add_uv(Vector2((half_size + bottomleft.x)/width, (half_size + bottomleft.z)/heigth))
+				surf_tool.add_uv(Vector2(float(x)/float(width), float(y)/float(heigth)))
+				surf_tool.add_vertex(upperleft)
+
+				if(color_vertices):
+					surf_tool.add_color(txr_tr)
+				surf_tool.add_smooth_group(true)
+				surf_tool.add_uv(Vector2(float(x+1)/float(width), float(y+1)/float(heigth)))
+				surf_tool.add_vertex(bottomright)
+				
+				if(color_vertices):
+					surf_tool.add_color(txr_bl)
+				surf_tool.add_smooth_group(true)
+				surf_tool.add_uv(Vector2(float(x)/float(width), float(y+1)/float(heigth)))
 				surf_tool.add_vertex(bottomleft)
 			
 		hm_sbs_img.unlock()
 		txtr_sbs_img.unlock()
 		surf_tool.generate_normals()
 		surf_tool.index()
-#		var material = ResourceLoader.load("res://TerrainLoader/material_vertex_color.tres")
+		
 		var imgtxtr = ImageTexture.new()
-		var mat = SpatialMaterial.new()
+		var mat = earth_mat.duplicate() #SpatialMaterial.new()
 		imgtxtr.create_from_image(txtr_sbs_img)
 		mat.albedo_texture = imgtxtr
 #		material.albedo_texture = imgtxtr
@@ -296,7 +320,7 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		+ " X/Y: " + var2str(coords["x"]) + "/" + var2str(coords["y"])
 		+ " Size: " + var2str(size)
 		+ " Dist: " + var2str(dist)
-		+ " Meters/Pixel: " + var2str(pxl_mtrs)
+		+ " Meters/Pixel: " + var2str(pxl_mtrs_max)
 		+ " Min/Max Alt.: " + var2str(minh) + "/" + var2str(maxh)
 		+ " finished in %.2f seconds" % ((endtt - startt)/1000))
 		return mesh

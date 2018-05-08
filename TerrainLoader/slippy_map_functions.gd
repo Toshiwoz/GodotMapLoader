@@ -1,7 +1,12 @@
-extends Node
+extends Object
 #	The following functions are the GDScript conversion of:
 #	https://help.openstreetmap.org/questions/747/given-a-latlon-how-do-i-find-the-precise-position-on-the-tile
 
+const EARTH_RADIUS = 6371000
+const MAX_LAT = 85.0511
+
+static func radius_to_circ(_rad):
+	return float(_rad) * 2 * PI
 
 #	Metres per pixel math
 #	---------------------
@@ -11,13 +16,21 @@ extends Node
 #	    _zoom is the zoom level
 #	    _lat is the latitude of where you're interested in the scale.
 static func adjust_dist_from_latzoom(_circ, _lat, _zoom):
-	var s = abs(_circ * cos(_lat)/pow(2, _zoom+8))
+	var s = abs(float(_circ) * cos(float(deg2rad(_lat)))/pow(2, _zoom+8))
 	return s
 	
 static func get_height_from_color(col):
 	return -10000 + ((col.r8 * 256 * 256 + col.g8 * 256 + col.b8) * 0.1)
 
-static func latlon_to_tile(lat_deg, lon_deg, zoom):
+static func calc_max_lon(_lat):
+	return _lat * PI / 180
+	
+static func latlon_to_tile_pxl(lat_deg, lon_deg, zoom):
+	if(abs(lat_deg) > MAX_LAT):
+		lat_deg = sign(lat_deg) * MAX_LAT
+#	if(abs(lon_deg) > MAX_LON):
+#		lon_deg = sign(lon_deg) * MAX_LON
+		
 	var lat_rad = deg2rad(lat_deg)
 	var n = pow(2.0, zoom)
 	var xtile_f = float((lon_deg + 180.0) / 360.0 * n)
@@ -29,44 +42,9 @@ static func latlon_to_tile(lat_deg, lon_deg, zoom):
 	return {"tilex":tilex, "tiley":tiley,
 			"pxlx":pxlx, "pxly":pxly}
 
-static func LatLongToPixelXY(latitude, longitude, zoomLevel):
-	var MinLatitude = -85.05112878
-	var MaxLatitude = 85.05112878
-	var MinLongitude = -180
-	var MaxLongitude = 180
-	var mapSize = pow(2, zoomLevel) * 256
+static func tile_to_latlon(_tilex, _tiley, _zoom):
+	var n = pow(2.0, _zoom)
+	var lon = _tilex * 360.0 / n - 180.0
+	var lat = rad2deg(atan(sinh(PI * (1.0 - 2.0 * float(_tiley) / n))))
+	return {"lat":lat, "lon":lon}
 	
-	latitude = Clip(latitude, MinLatitude, MaxLatitude)
-	longitude = Clip(longitude, MinLongitude, MaxLongitude)
-	
-	var p = Vector2()
-	p.x = float((longitude + 180.0) / 360.0 * (1 << zoomLevel))
-	p.y = float((1.0 - log(tan(latitude * PI / 180.0) + 1.0 / cos(deg2rad(latitude))) / PI) / 2.0 * (1 << zoomLevel))
-	var tilex = int(p.x)
-	var tiley = int(p.y)
-	var pixelX = ClipByRange((tilex * 256) + ((p.x - tilex) * 256), mapSize - 1)
-	var pixelY = ClipByRange((tiley * 256) + ((p.y - tiley) * 256), mapSize - 1)
-	var result = {"tilex":tilex, "tiley":tiley, "x":pixelX, "y":pixelY}
-	print(p)
-	print((tilex * 256) + ((p.x - tilex) * 256))
-	print((tiley * 256) + ((p.y - tiley) * 256))
-	print(mapSize - 1)
-	print(result)
-	return result
-
-static func PixelXYToLatLong(pixelX, pixelY, zoomLevel):
-	var mapSize = pow(2, zoomLevel) * 256
-	var tileX = round(pixelX / 256)
-	var tileY = round(pixelY / 256)
-	
-	var n = PI - ((2.0 * PI * (ClipByRange(pixelY, mapSize - 1) / 256)) / pow(2.0, zoomLevel))
-	
-	var longitude = float(((ClipByRange(pixelX, mapSize - 1) / 256) / pow(2.0, zoomLevel) * 360.0) - 180.0)
-	var latitude = float(180.0 / PI * atan(sinh(n)))
-	return {"lon":longitude, "lat":latitude}
-
-static func ClipByRange(n, _range):
-	return fmod(n, _range)
-
-static func Clip(n, minValue, maxValue):
-	return min(max(n, minValue), maxValue)
