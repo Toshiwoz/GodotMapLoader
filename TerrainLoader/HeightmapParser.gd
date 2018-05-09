@@ -87,8 +87,7 @@ static func lat_lon_on_sphere(_radius, _lat, _lon):
 	sp_pt = sp_pt.rotated(Vector3(1,0,0), deg2rad(90-_lat))
 	sp_pt = sp_pt.rotated(Vector3(0,1,0), deg2rad(_lon))
 	return sp_pt
-	
-	
+
 static func GetHeightFromPxl(_pxl):
 	return -10000 + ((_pxl.r8 * 256 * 256 + _pxl.g8 * 256 + _pxl.b8) * 0.1)
 
@@ -197,15 +196,18 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		txtr_sbs_img.lock()
 		var width = hm_sbs_img.get_width()
 		var heigth = hm_sbs_img.get_height()
-		var rangeX = range(width - 1)
-		var rangeY = range(heigth - 1)
+		var step_size = 2
+		var rangeX = range(0,width - step_size, step_size)
+		var rangeY = range(0,heigth - step_size, step_size)
 		var minh = 999999
 		var maxh = 0
 		var lat_lon_t = smf.tile_to_latlon(_tilex, _tiley, Zoom)
 		var lat_lon_b = smf.tile_to_latlon(_tilex, _tiley, Zoom)
+		var lat_lon_b2 = smf.tile_to_latlon(_tilex, _tiley, Zoom)
 		var pxl_mtrs_max = smf.adjust_dist_from_latzoom(earth_circ, 0, Zoom)
 		var pxl_mtrs_t = smf.adjust_dist_from_latzoom(earth_circ, lat_lon_t["lat"], Zoom)
 		var pxl_mtrs_b = smf.adjust_dist_from_latzoom(earth_circ, lat_lon_b["lat"], Zoom)
+		var pxl_mtrs_b2 = smf.adjust_dist_from_latzoom(earth_circ, lat_lon_b2["lat"], Zoom)
 		var size = float(heigth)
 		if(total_size == null):
 			total_size = 0
@@ -215,6 +217,7 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		var dist = float (size / width)
 		var dist_proportion_t = dist * pxl_mtrs_t / pxl_mtrs_max
 		var dist_proportion_b = dist * pxl_mtrs_b / pxl_mtrs_max
+		var dist_proportion_b2 = dist * pxl_mtrs_b2 / pxl_mtrs_max
 		# Altitude should be proportional to size
 		# Height multiplier is used to enhace altitudes,
 		# a value of 1 maintain real altitudes
@@ -222,12 +225,22 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		
 		var txr_tl = Color()
 		var txr_tr = Color()
+		var txr_tr2 = Color()
 		var txr_bl = Color()
+		var txr_b2l = Color()
 		var txr_br = Color()
+		var txr_b2r = Color()
+		var txr_br2 = Color()
+		var txr_b2r2 = Color()
 		var alt_tl = float(0)
 		var alt_tr = float(0)
+		var alt_tr2 = float(0)
 		var alt_bl = float(0)
+		var alt_b2l = float(0)
 		var alt_br = float(0)
+		var alt_b2r = float(0)
+		var alt_br2 = float(0)
+		var alt_b2r2 = float(0)
 		
 		var arr_vtx = PoolVector3Array()
 		var arr_uvs = PoolVector2Array()
@@ -246,49 +259,85 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		for y in rangeY:
 			# getting adjusted distances
 			# as it should change only on latitute change, we adjust it here
+			lat_lon_t = smf.tile_to_latlon(_tilex, float(_tiley) + float(y)/float(heigth), Zoom)
+			lat_lon_b = smf.tile_to_latlon(_tilex, float(_tiley) + float(y + 1)/float(heigth), Zoom)
+			lat_lon_b2 = smf.tile_to_latlon(_tilex, float(_tiley) + float(y + 2)/float(heigth), Zoom)
+			pxl_mtrs_t = smf.adjust_dist_from_latzoom(earth_circ, lat_lon_t["lat"], Zoom)
+			pxl_mtrs_b = smf.adjust_dist_from_latzoom(earth_circ, lat_lon_b["lat"], Zoom)
+			pxl_mtrs_b2 = smf.adjust_dist_from_latzoom(earth_circ, lat_lon_b2["lat"], Zoom)
+			dist_proportion_t = dist * pxl_mtrs_t / pxl_mtrs_max
+			dist_proportion_b = dist * pxl_mtrs_b / pxl_mtrs_max
+			dist_proportion_b2 = dist * pxl_mtrs_b2 / pxl_mtrs_max
 #			print("For Tile x=%f y=%f Dist T: %f, b: %f" % [_tilex, float(_tiley) + float(y)/float(width), dist_proportion_t, dist_proportion_b])
 			for x in rangeX:
 				arr_vtx.resize(0)
 				arr_uvs.resize(0)
 				arr_cols.resize(0)
-				lat_lon_t = smf.tile_to_latlon(_tilex + float(x)/float(width), float(_tiley) + float(y)/float(heigth), Zoom)
-				lat_lon_b = smf.tile_to_latlon(_tilex + float(x)/float(width), float(_tiley) + float(y + 1)/float(heigth), Zoom)
-				pxl_mtrs_t = smf.adjust_dist_from_latzoom(earth_circ, lat_lon_t["lat"], Zoom)
-				pxl_mtrs_b = smf.adjust_dist_from_latzoom(earth_circ, lat_lon_b["lat"], Zoom)
-				dist_proportion_t = dist * pxl_mtrs_t / pxl_mtrs_max
-				dist_proportion_b = dist * pxl_mtrs_b / pxl_mtrs_max
 				if(color_vertices):
 					txr_tl = txtr_sbs_img.get_pixel(x, y)
 					txr_tr = txtr_sbs_img.get_pixel(x + 1, y)
+					txr_tr2 = txtr_sbs_img.get_pixel(x + 2, y)
 					txr_bl = txtr_sbs_img.get_pixel(x, y + 1)
+					txr_b2l = txtr_sbs_img.get_pixel(x, y + 2)
 					txr_br = txtr_sbs_img.get_pixel(x + 1, y + 1)
+					txr_b2r = txtr_sbs_img.get_pixel(x + 2, y + 1)
+					txr_br2 = txtr_sbs_img.get_pixel(x + 1, y + 2)
+					txr_b2r2 = txtr_sbs_img.get_pixel(x + 2, y + 2)
 				if(_remove_offset):
 					alt_tl = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y)) - minh
 					alt_tr = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y)) - minh
+					alt_tr2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2, y)) - minh
 					alt_bl = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y + 1)) - minh
+					alt_b2l = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y + 2)) - minh
 					alt_br = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y + 1)) - minh
+					alt_b2r = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y + 2)) - minh
+					alt_br2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2, y + 1)) - minh
+					alt_b2r2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2, y + 2)) - minh
 				else:
-					alt_tl = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y))
+					alt_tl = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y)) 
 					alt_tr = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y))
+					alt_tr2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2, y))
 					alt_bl = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y + 1))
+					alt_b2l = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y + 2))
 					alt_br = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y + 1))
+					alt_b2r = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y + 2))
+					alt_br2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2, y + 1))
+					alt_b2r2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2, y + 2))
 				
+				arr_vtx.append(Vector3((x+1 - half_size) * dist_proportion_b, alt_br * dist * altitude_multiplier, (y+1 - half_size) * dist_proportion_b))
 				arr_vtx.append(Vector3((x - half_size) * dist_proportion_t, alt_tl * dist * altitude_multiplier, (y - half_size) * dist_proportion_t))
-				arr_vtx.append(Vector3((x + 1 - half_size) * dist_proportion_t, alt_tr * dist * altitude_multiplier, (y - half_size) * dist_proportion_t))
-				arr_vtx.append(Vector3((x + 1 - half_size) * dist_proportion_b, alt_br * dist * altitude_multiplier, (y + 1 - half_size) * dist_proportion_b))
-				arr_vtx.append(Vector3((x - half_size) * dist_proportion_b, alt_bl * dist * altitude_multiplier, (y + 1 - half_size) * dist_proportion_b))
+				arr_vtx.append(Vector3((x+1 - half_size) * dist_proportion_t, alt_tr * dist * altitude_multiplier, (y - half_size) * dist_proportion_t))
+				arr_vtx.append(Vector3((x+2 - half_size) * dist_proportion_t, alt_tr2 * dist * altitude_multiplier, (y - half_size) * dist_proportion_t))
+				arr_vtx.append(Vector3((x+2 - half_size) * dist_proportion_b, alt_br2 * dist * altitude_multiplier, (y+1 - half_size) * dist_proportion_b))
+				arr_vtx.append(Vector3((x+2 - half_size) * dist_proportion_b2, alt_b2r2 * dist * altitude_multiplier, (y+2 - half_size) * dist_proportion_b2))
+				arr_vtx.append(Vector3((x+1 - half_size) * dist_proportion_b2, alt_b2r * dist * altitude_multiplier, (y+2 - half_size) * dist_proportion_b2))
+				arr_vtx.append(Vector3((x - half_size) * dist_proportion_b2, alt_b2l * dist * altitude_multiplier, (y+2 - half_size) * dist_proportion_b2))
+				arr_vtx.append(Vector3((x - half_size) * dist_proportion_b, alt_bl * dist * altitude_multiplier, (y+1 - half_size) * dist_proportion_b))
+				arr_vtx.append(Vector3((x - half_size) * dist_proportion_t, alt_tl * dist * altitude_multiplier, (y - half_size) * dist_proportion_t))
 				
+				arr_uvs.append(Vector2(float(x+1)/float(width), float(y+1)/float(heigth)))
 				arr_uvs.append(Vector2(float(x)/float(width), float(y)/float(heigth)))
 				arr_uvs.append(Vector2(float(x+1)/float(width), float(y)/float(heigth)))
-				arr_uvs.append(Vector2(float(x+1)/float(width), float(y+1)/float(heigth)))
+				arr_uvs.append(Vector2(float(x+2)/float(width), float(y)/float(heigth)))
+				arr_uvs.append(Vector2(float(x+2)/float(width), float(y+1)/float(heigth)))
+				arr_uvs.append(Vector2(float(x+2)/float(width), float(y+2)/float(heigth)))
+				arr_uvs.append(Vector2(float(x+1)/float(width), float(y+2)/float(heigth)))
+				arr_uvs.append(Vector2(float(x)/float(width), float(y+2)/float(heigth)))
 				arr_uvs.append(Vector2(float(x)/float(width), float(y+1)/float(heigth)))
+				arr_uvs.append(Vector2(float(x)/float(width), float(y)/float(heigth)))
 				
+				arr_cols.append(txr_br)
 				arr_cols.append(txr_tl)
 				arr_cols.append(txr_tr)
-				arr_cols.append(txr_br)
+				arr_cols.append(txr_tr2)
+				arr_cols.append(txr_br2)
+				arr_cols.append(txr_b2r2)
+				arr_cols.append(txr_b2r)
+				arr_cols.append(txr_b2l)
 				arr_cols.append(txr_bl)
+				arr_cols.append(txr_tl)
 				
-				surf_tool.add_rectangle(arr_vtx, arr_uvs, arr_cols)
+				surf_tool.add_rectangle(arr_vtx, arr_uvs, arr_cols, false, true)
 			
 		hm_sbs_img.unlock()
 		txtr_sbs_img.unlock()
