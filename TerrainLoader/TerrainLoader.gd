@@ -7,7 +7,7 @@
 tool
 extends Spatial
 
-export(String) onready var access_token = "pk.eyJ1IjoiZGlnaXRhbGtpIiwiYSI6ImNqNXh1MDdibTA4bTMycnAweDBxYXBpYncifQ.daSatfva2eG-95QHWC9Mig"
+export(String) onready var access_token = ""
 export(float, -180, 180) onready var lon setget _set_lon
 export(float, -90, 90) onready var lat setget _set_lat
 export(int, 1, 15, 1) onready var zoom_level setget _setZoom
