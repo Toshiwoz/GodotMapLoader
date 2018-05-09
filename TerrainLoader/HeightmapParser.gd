@@ -3,6 +3,7 @@ extends Spatial
 
 var earth_mat = preload("res://TerrainLoader/TerrainMaterial.tres")
 var smf = preload("res://TerrainLoader/slippy_map_functions.gd")
+var sth = preload("res://TerrainLoader/surface_tool_helper.gd")
 var earth_circ = smf.radius_to_circ(smf.EARTH_RADIUS)
 
 func _init():
@@ -80,6 +81,13 @@ static func GetPixelDistance(_heightMap, _totalSize):
 			tileSize = _totalSize
 		dist = float (tileSize / hmSize)
 	return dist
+	
+static func lat_lon_on_sphere(_radius, _lat, _lon):
+	var sp_pt = Transform(Vector3(1,0,0), Vector3(0,1,0), Vector3(0,0,1), Vector3(0,_radius,0))
+	sp_pt = sp_pt.rotated(Vector3(1,0,0), deg2rad(90-_lat))
+	sp_pt = sp_pt.rotated(Vector3(0,1,0), deg2rad(_lon))
+	return sp_pt
+	
 	
 static func GetHeightFromPxl(_pxl):
 	return -10000 + ((_pxl.r8 * 256 * 256 + _pxl.g8 * 256 + _pxl.b8) * 0.1)
@@ -172,6 +180,7 @@ func createMesh(ht, total_size = 0, height_multiplier = 1, Zoom = 1, _subset = 1
 
 func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_size = 0, height_multiplier = 1, Zoom = 1, _tilex = 0, _tiley = 0, _subset = 1, _divideinto = 4, _remove_offset = false, _mesh_path = null):
 	var color_vertices = false
+	var project_on_sphere = true
 	var coords = _subsetToXYCoords(_subset, _divideinto)
 	var lastvalx = 1
 	if(coords["x"] == _divideinto):
@@ -180,7 +189,7 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 	if(coords["y"] == _divideinto):
 		lastvaly = -1
 	if(!_hm_img.is_empty() && !_txtr_img.is_empty()):
-		var surf_tool = SurfaceTool.new()
+		var surf_tool =  sth.new()#SurfaceTool.new()
 		var startt = float(OS.get_ticks_msec())
 		var hm_sbs_img = GetImageSubset(_hm_img, _divideinto, _subset, Vector2(lastvalx, lastvaly))
 		var txtr_sbs_img = GetImageSubset(_txtr_img, _divideinto, _subset, Vector2(lastvalx, lastvaly))
@@ -192,7 +201,6 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		var rangeY = range(heigth - 1)
 		var minh = 999999
 		var maxh = 0
-				
 		var lat_lon_t = smf.tile_to_latlon(_tilex, _tiley, Zoom)
 		var lat_lon_b = smf.tile_to_latlon(_tilex, _tiley, Zoom)
 		var pxl_mtrs_max = smf.adjust_dist_from_latzoom(earth_circ, 0, Zoom)
@@ -211,8 +219,6 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		# Height multiplier is used to enhace altitudes,
 		# a value of 1 maintain real altitudes
 		var altitude_multiplier =  float(height_multiplier * dist / pxl_mtrs_t)
-		surf_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
-#		surf_tool.add_color(Color(1,1,1))
 		
 		var txr_tl = Color()
 		var txr_tr = Color()
@@ -222,12 +228,13 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		var alt_tr = float(0)
 		var alt_bl = float(0)
 		var alt_br = float(0)
-
-		var bottomleft = Vector3()
-		var upperleft = Vector3()
-		var upperright = Vector3()
-		var bottomright = Vector3()
-				
+		
+		var arr_vtx = PoolVector3Array()
+		var arr_uvs = PoolVector2Array()
+		var arr_cols = PoolColorArray()
+		
+		surf_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+#		surf_tool.add_color(Color(1,1,1))
 		for y in rangeY:
 			for x in rangeX:
 				alt_tl = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y))
@@ -235,18 +242,21 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 					minh = alt_tl
 				if(alt_tl > maxh):
 					maxh = alt_tl
+					
 		for y in rangeY:
 			# getting adjusted distances
 			# as it should change only on latitute change, we adjust it here
-			lat_lon_t = smf.tile_to_latlon(_tilex, float(_tiley) + float(y)/float(width), Zoom)
-			lat_lon_b = smf.tile_to_latlon(_tilex, float(_tiley) + float(y + 1)/float(width), Zoom)
-			pxl_mtrs_t = smf.adjust_dist_from_latzoom(earth_circ, lat_lon_t["lat"], Zoom)
-			pxl_mtrs_b = smf.adjust_dist_from_latzoom(earth_circ, lat_lon_b["lat"], Zoom)
-			altitude_multiplier =  float(height_multiplier * dist / pxl_mtrs_max)
-			dist_proportion_t = dist * pxl_mtrs_t / pxl_mtrs_max
-			dist_proportion_b = dist * pxl_mtrs_b / pxl_mtrs_max
-			print("For Tile x=%f y=%f Dist T: %f, b: %f" % [_tilex, float(_tiley) + float(y)/float(width), dist_proportion_t, dist_proportion_b])
+#			print("For Tile x=%f y=%f Dist T: %f, b: %f" % [_tilex, float(_tiley) + float(y)/float(width), dist_proportion_t, dist_proportion_b])
 			for x in rangeX:
+				arr_vtx.resize(0)
+				arr_uvs.resize(0)
+				arr_cols.resize(0)
+				lat_lon_t = smf.tile_to_latlon(_tilex + float(x)/float(width), float(_tiley) + float(y)/float(heigth), Zoom)
+				lat_lon_b = smf.tile_to_latlon(_tilex + float(x)/float(width), float(_tiley) + float(y + 1)/float(heigth), Zoom)
+				pxl_mtrs_t = smf.adjust_dist_from_latzoom(earth_circ, lat_lon_t["lat"], Zoom)
+				pxl_mtrs_b = smf.adjust_dist_from_latzoom(earth_circ, lat_lon_b["lat"], Zoom)
+				dist_proportion_t = dist * pxl_mtrs_t / pxl_mtrs_max
+				dist_proportion_b = dist * pxl_mtrs_b / pxl_mtrs_max
 				if(color_vertices):
 					txr_tl = txtr_sbs_img.get_pixel(x, y)
 					txr_tr = txtr_sbs_img.get_pixel(x + 1, y)
@@ -262,45 +272,23 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 					alt_tr = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y))
 					alt_bl = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y + 1))
 					alt_br = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y + 1))
-
-				bottomleft = Vector3((x - half_size) * dist_proportion_b, alt_bl * altitude_multiplier, (y + 1) * dist - half_size)
-				upperleft = Vector3((x - half_size) * dist_proportion_t, alt_tl * altitude_multiplier, (y) * dist - half_size)
-				upperright = Vector3((x + 1 - half_size) * dist_proportion_t, alt_tr * altitude_multiplier, (y) * dist - half_size)
-				bottomright = Vector3((x + 1 - half_size) * dist_proportion_b, alt_br * altitude_multiplier, (y + 1) * dist - half_size)
-				if(color_vertices):
-					surf_tool.add_color(txr_tl)
-				surf_tool.add_smooth_group(true)
-				surf_tool.add_uv(Vector2(float(x)/float(width), float(y)/float(heigth)))
-				surf_tool.add_vertex(upperleft)
-				if(color_vertices):
-					surf_tool.add_color(txr_tr)
-				surf_tool.add_smooth_group(true)
-				surf_tool.add_uv(Vector2(float(x+1)/float(width), float(y)/float(heigth)))
-				surf_tool.add_vertex(upperright)
 				
-				if(color_vertices):
-					surf_tool.add_color(txr_br)
-				surf_tool.add_smooth_group(true)
-				surf_tool.add_uv(Vector2(float(x+1)/float(width), float(y+1)/float(heigth)))
-				surf_tool.add_vertex(bottomright)
+				arr_vtx.append(Vector3((x - half_size) * dist_proportion_t, alt_tl * dist * altitude_multiplier, (y - half_size) * dist_proportion_t))
+				arr_vtx.append(Vector3((x + 1 - half_size) * dist_proportion_t, alt_tr * dist * altitude_multiplier, (y - half_size) * dist_proportion_t))
+				arr_vtx.append(Vector3((x + 1 - half_size) * dist_proportion_b, alt_br * dist * altitude_multiplier, (y + 1 - half_size) * dist_proportion_b))
+				arr_vtx.append(Vector3((x - half_size) * dist_proportion_b, alt_bl * dist * altitude_multiplier, (y + 1 - half_size) * dist_proportion_b))
 				
-				if(color_vertices):
-					surf_tool.add_color(txr_tl)
-				surf_tool.add_smooth_group(true)
-				surf_tool.add_uv(Vector2(float(x)/float(width), float(y)/float(heigth)))
-				surf_tool.add_vertex(upperleft)
-
-				if(color_vertices):
-					surf_tool.add_color(txr_tr)
-				surf_tool.add_smooth_group(true)
-				surf_tool.add_uv(Vector2(float(x+1)/float(width), float(y+1)/float(heigth)))
-				surf_tool.add_vertex(bottomright)
+				arr_uvs.append(Vector2(float(x)/float(width), float(y)/float(heigth)))
+				arr_uvs.append(Vector2(float(x+1)/float(width), float(y)/float(heigth)))
+				arr_uvs.append(Vector2(float(x+1)/float(width), float(y+1)/float(heigth)))
+				arr_uvs.append(Vector2(float(x)/float(width), float(y+1)/float(heigth)))
 				
-				if(color_vertices):
-					surf_tool.add_color(txr_bl)
-				surf_tool.add_smooth_group(true)
-				surf_tool.add_uv(Vector2(float(x)/float(width), float(y+1)/float(heigth)))
-				surf_tool.add_vertex(bottomleft)
+				arr_cols.append(txr_tl)
+				arr_cols.append(txr_tr)
+				arr_cols.append(txr_br)
+				arr_cols.append(txr_bl)
+				
+				surf_tool.add_rectangle(arr_vtx, arr_uvs, arr_cols)
 			
 		hm_sbs_img.unlock()
 		txtr_sbs_img.unlock()
