@@ -1,7 +1,7 @@
 # Some coordinate you can use to test the script
 # FLORENCE - lat: 43.771388888889 lon: 11.254166666667
 # IGUAZU FALLS lat: -25.695277777778 lon: -54.436666666667
-# ECUADOR SIERRA lat: -0.35434 lon: -78.40207
+# COTOPAXI lat: -0.680556,-78.437778
 # MOUNT FUJI lat: 35.36 lon: 138.73
 # HIMALAYA lat: 27.988056, lon: 86.925278
 tool

@@ -306,36 +306,49 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 				
 				arr_vtx.append(Vector3((x+1 - half_size) * dist_proportion_b, alt_br * dist * altitude_multiplier, (y+1 - half_size) * dist_proportion_b))
 				arr_vtx.append(Vector3((x - half_size) * dist_proportion_t, alt_tl * dist * altitude_multiplier, (y - half_size) * dist_proportion_t))
-				arr_vtx.append(Vector3((x+1 - half_size) * dist_proportion_t, alt_tr * dist * altitude_multiplier, (y - half_size) * dist_proportion_t))
+				if(alt_tr != alt_tr2):
+					arr_vtx.append(Vector3((x+1 - half_size) * dist_proportion_t, alt_tr * dist * altitude_multiplier, (y - half_size) * dist_proportion_t))
 				arr_vtx.append(Vector3((x+2 - half_size) * dist_proportion_t, alt_tr2 * dist * altitude_multiplier, (y - half_size) * dist_proportion_t))
-				arr_vtx.append(Vector3((x+2 - half_size) * dist_proportion_b, alt_br2 * dist * altitude_multiplier, (y+1 - half_size) * dist_proportion_b))
+				if(alt_br2 != alt_tr2):
+					arr_vtx.append(Vector3((x+2 - half_size) * dist_proportion_b, alt_br2 * dist * altitude_multiplier, (y+1 - half_size) * dist_proportion_b))
 				arr_vtx.append(Vector3((x+2 - half_size) * dist_proportion_b2, alt_b2r2 * dist * altitude_multiplier, (y+2 - half_size) * dist_proportion_b2))
-				arr_vtx.append(Vector3((x+1 - half_size) * dist_proportion_b2, alt_b2r * dist * altitude_multiplier, (y+2 - half_size) * dist_proportion_b2))
+				if(alt_b2r != alt_b2r2):
+					arr_vtx.append(Vector3((x+1 - half_size) * dist_proportion_b2, alt_b2r * dist * altitude_multiplier, (y+2 - half_size) * dist_proportion_b2))
 				arr_vtx.append(Vector3((x - half_size) * dist_proportion_b2, alt_b2l * dist * altitude_multiplier, (y+2 - half_size) * dist_proportion_b2))
-				arr_vtx.append(Vector3((x - half_size) * dist_proportion_b, alt_bl * dist * altitude_multiplier, (y+1 - half_size) * dist_proportion_b))
+				if(alt_bl != alt_b2l):
+					arr_vtx.append(Vector3((x - half_size) * dist_proportion_b, alt_bl * dist * altitude_multiplier, (y+1 - half_size) * dist_proportion_b))
 				arr_vtx.append(Vector3((x - half_size) * dist_proportion_t, alt_tl * dist * altitude_multiplier, (y - half_size) * dist_proportion_t))
 				
 				arr_uvs.append(Vector2(float(x+1)/float(width), float(y+1)/float(heigth)))
 				arr_uvs.append(Vector2(float(x)/float(width), float(y)/float(heigth)))
-				arr_uvs.append(Vector2(float(x+1)/float(width), float(y)/float(heigth)))
+				if(alt_tr != alt_tr2):
+					arr_uvs.append(Vector2(float(x+1)/float(width), float(y)/float(heigth)))
 				arr_uvs.append(Vector2(float(x+2)/float(width), float(y)/float(heigth)))
-				arr_uvs.append(Vector2(float(x+2)/float(width), float(y+1)/float(heigth)))
+				if(alt_br2 != alt_tr2):
+					arr_uvs.append(Vector2(float(x+2)/float(width), float(y+1)/float(heigth)))
 				arr_uvs.append(Vector2(float(x+2)/float(width), float(y+2)/float(heigth)))
-				arr_uvs.append(Vector2(float(x+1)/float(width), float(y+2)/float(heigth)))
+				if(alt_b2r != alt_b2r2):
+					arr_uvs.append(Vector2(float(x+1)/float(width), float(y+2)/float(heigth)))
 				arr_uvs.append(Vector2(float(x)/float(width), float(y+2)/float(heigth)))
-				arr_uvs.append(Vector2(float(x)/float(width), float(y+1)/float(heigth)))
+				if(alt_bl != alt_b2l):
+					arr_uvs.append(Vector2(float(x)/float(width), float(y+1)/float(heigth)))
 				arr_uvs.append(Vector2(float(x)/float(width), float(y)/float(heigth)))
 				
-				arr_cols.append(txr_br)
-				arr_cols.append(txr_tl)
-				arr_cols.append(txr_tr)
-				arr_cols.append(txr_tr2)
-				arr_cols.append(txr_br2)
-				arr_cols.append(txr_b2r2)
-				arr_cols.append(txr_b2r)
-				arr_cols.append(txr_b2l)
-				arr_cols.append(txr_bl)
-				arr_cols.append(txr_tl)
+				if(color_vertices):
+					arr_cols.append(txr_br)
+					arr_cols.append(txr_tl)
+					if(alt_tr != alt_tr2):
+						arr_cols.append(txr_tr)
+					arr_cols.append(txr_tr2)
+					if(alt_br2 != alt_tr2):
+						arr_cols.append(txr_br2)
+					arr_cols.append(txr_b2r2)
+					if(alt_b2r != alt_b2r2):
+						arr_cols.append(txr_b2r)
+					arr_cols.append(txr_b2l)
+					if(alt_bl != alt_b2l):
+						arr_cols.append(txr_bl)
+					arr_cols.append(txr_tl)
 				
 				surf_tool.add_rectangle(arr_vtx, arr_uvs, arr_cols, false, true)
 			
