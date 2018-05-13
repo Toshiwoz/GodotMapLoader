@@ -1,15 +1,18 @@
 # Some coordinate you can use to test the script
-# FLORENCE - lat: 43.771388888889 lon: 11.254166666667
 # IGUAZU FALLS lat: -25.695277777778 lon: -54.436666666667
+# FLORENCE - lat: 43.771388888889 lon: 11.254166666667
 # COTOPAXI lat: -0.680556,-78.437778
 # MOUNT FUJI lat: 35.36 lon: 138.73
 # HIMALAYA lat: 27.988056, lon: 86.925278
 tool
 extends Spatial
 
-export(String) onready var access_token = ""
+var smf = preload("res://TerrainLoader/slippy_map_functions.gd")
+var tsh = preload("res://TerrainLoader/TerrainShaper.tscn")
+
+export(String) onready var access_token
 export(float, -180, 180) onready var lon setget _set_lon
-export(float, -90, 90) onready var lat setget _set_lat
+export(float, -85.0511, 85.0511) onready var lat setget _set_lat
 export(int, 1, 15, 1) onready var zoom_level setget _setZoom
 export(float, 0.1, 50, 0.1) onready var HeighMultiplier
 export(int) var tilex = 0 setget , _get_tilex
@@ -18,8 +21,6 @@ export(int) var pxlx = 0 setget , _get_pxlx
 export(int) var pxly = 0 setget , _get_pxly
 export(Image) onready var TerrainHeightMap
 export(Image) onready var TerrainTexture
-var smf = preload("res://TerrainLoader/slippy_map_functions.gd")
-var tsh = preload("res://TerrainLoader/TerrainShaper.tscn")
 
 func _get_tilex():
 	self._setCoords(lon, lat, zoom_level)
@@ -76,12 +77,12 @@ func _request_map(_tilex = 0, _tiley = 0, _zoom = 1, _isheightmap = true):
 	if(self.is_inside_tree()):
 		if(has_node("MapLoaderTexture") 
 			&& has_node("MapLoaderHeightMap")):
-			print("generating terrain...")
 			var map_type = "terrain-rgb"
 			var double_size = ""
 			if(!_isheightmap):
 				map_type = "satellite"
 				double_size = "@2x"
+			print("Requesting %s tile x/y/z %d/%d/%d" % [map_type, _tilex, _tiley, _zoom])
 			var url = "https://api.mapbox.com/v4/mapbox." + map_type + "/" + var2str(_zoom) + "/" + var2str(_tilex) + "/" + var2str(_tiley) + double_size + ".pngraw?access_token=" + access_token
 			print(url)
 			if(_isheightmap):
@@ -102,7 +103,12 @@ func print_response_messages(result, response_code, headers, body):
 
 func get_image_from_bytes(_bytes, _save_path = null):
 	var resp_image = Image.new()
-	var png_error = resp_image.load_png_from_buffer(_bytes)
+	resp_image.create(256, 256, false, Image.FORMAT_L8)
+	var png_error = 0
+	if(_bytes.size() > 33):
+		png_error = resp_image.load_png_from_buffer(_bytes)
+	else:
+		print("No heightmap tile found, using default...")
 	if(png_error !=0):
 		print("Image load error code: " + var2str(png_error))
 	print("Image Size: " + var2str(resp_image.get_size()))
@@ -146,7 +152,7 @@ func generate_terrain_meshes():
 	
 func _on_MapLoaderHeightMap_request_completed(result, response_code, headers, body):
 	print_response_messages(result, response_code, headers, body)
-	TerrainHeightMap = get_image_from_bytes(body)#, "res://response_hm.png")
+	TerrainHeightMap = get_image_from_bytes(body)
 	if(TerrainHeightMap.get_size().length() > 0):
 		generate_terrain_meshes()
 	else:
@@ -154,7 +160,7 @@ func _on_MapLoaderHeightMap_request_completed(result, response_code, headers, bo
 
 func _on_MapLoaderTexture_request_completed(result, response_code, headers, body):
 	print_response_messages(result, response_code, headers, body)
-	TerrainTexture = get_image_from_bytes(body)#, "res://response_txtr.png")
+	TerrainTexture = get_image_from_bytes(body)
 	if(TerrainTexture.get_size().length() > 0):
 		generate_terrain_meshes()
 	else:

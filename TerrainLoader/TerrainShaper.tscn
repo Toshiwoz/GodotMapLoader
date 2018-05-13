@@ -1,10 +1,6 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=2 format=2]
 
 [ext_resource path="res://TerrainLoader/TerrainShaper.gd" type="Script" id=1]
-
-[sub_resource type="PlaneShape" id=1]
-
-plane = Plane( 0, 10, 0, 0 )
 
 [node name="TerrainShaper" type="StaticBody" index="0"]
 
@@ -32,7 +28,7 @@ ShapeMesh = null
 
 [node name="TerrainCollision" type="CollisionShape" parent="." index="0"]
 
-shape = SubResource( 1 )
+shape = null
 disabled = false
 
 [node name="TerrainMesh" type="MeshInstance" parent="." index="1"]

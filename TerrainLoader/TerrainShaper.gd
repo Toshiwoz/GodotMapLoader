@@ -13,6 +13,7 @@ export(String, FILE, "*.png, *.jpg, *.jpeg") var TerrainHeightMapPath setget _se
 export(String, FILE, "*.png, *.jpg, *.jpeg") var TerrainTexturePath setget _setMapTexture
 export(String, FILE, "*.tres") var MeshPath
 export(Mesh) var ShapeMesh
+export(ConcavePolygonShape) var Coll
 
 var hmp = preload("res://TerrainLoader/HeightmapParser.gd")
 var NumberOfSections = 4
@@ -85,6 +86,8 @@ func initialize_map(_zoom = 1, _tilex = 0, _tiley = 0, _hmultiplier = 1, _divide
 func SetMapShapeAndCollision():
 	if(ShapeMesh != null):
 		$TerrainMesh.mesh = ShapeMesh
+	if(Coll != null):
+		$TerrainCollision.shape = Coll
 	if($TerrainMesh.mesh == null 
 		&& TerrainImage != null
 		&& TerrainTextureImage != null
@@ -93,8 +96,17 @@ func SetMapShapeAndCollision():
 		var hmTool = hmp.new()
 #		HeightMap = hmTool.GenerateHeightMap(TerrainImage, TerrainTextureImage, Subset, DivideInto)
 #		$TerrainMesh.mesh = hmTool.createMesh(HeightMap, Size, HeigthMultiplier, Zoom, Subset, DivideInto, SubsetShift, MeshPath)
-		$TerrainMesh.mesh = hmTool.createMeshFromImage(TerrainImage, TerrainTextureImage, 0, HeigthMultiplier, Zoom, TileX, TileY, Subset, DivideInto, false)
+		if(Zoom > 5):
+			$TerrainMesh.mesh = hmTool.createMeshFromImage(TerrainImage, TerrainTextureImage, 0, HeigthMultiplier, Zoom, TileX, TileY, Subset, DivideInto, false)
+		else:
+			$TerrainMesh.mesh = hmTool.CreateMeshFromImage_sph(TerrainImage, TerrainTextureImage, 0, HeigthMultiplier, Zoom, TileX, TileY, Subset, DivideInto, false)
 		ShapeMesh = $TerrainMesh.mesh
+		var pos = $TerrainMesh.get_aabb()
+		pos.size.y = 0
+		self.translation = -pos.position - pos.size/2
+		$TerrainCollision.shape = ConcavePolygonShape.new()
+		$TerrainCollision.shape.set_faces($TerrainMesh.mesh.get_faces())
+		Coll = $TerrainCollision.shape
 		if(MeshPath != null):
 			ResourceSaver.save(MeshPath, $TerrainMesh.mesh)
 		if(SubsetShift):
