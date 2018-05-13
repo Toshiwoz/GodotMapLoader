@@ -1,5 +1,8 @@
 # GodotMapLoader
 Loads maps from MapBox and renders it in 3D
+![alt text](https://github.com/Toshiwoz/GodotMapLoader/blob/master/mount_fuji_area_screenshot.png "Mount Fuji area")
+![alt text](https://github.com/Toshiwoz/GodotMapLoader/blob/master/himalaya_mountains_screenshot.png "Himalaya")
+
 
 This is still a work in progress, as it should be an addon for Godot game engine (3.0),
 but for now it is just a normal project that allows to load map data from MapBox
