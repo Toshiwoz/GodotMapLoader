@@ -14,18 +14,16 @@ as possible, being this way ideal to load dinamically the terrain
 
 ## Try it yourself
 
-Download this repo, run it in your godot 3.0 version (I am currently using 3.0.3 RC1),
+Download this repo, run it in your godot 3.0 version (I am currently using 3.0.3 RC2),
 create a scene with directional light, a camera, etc.
 Then drag in it the TerrainLoader scene (so an instance of it).
 And then in the node's properties set latitude, longitude and zoom level (sorry, it loads every time you change each of those values.. will resolve that once it will become an actual Addon.
 
 ## TODOs
 
-I am trying to take into account also earth curvature,
-so very soon the renderer will have that option too
-(probably will be optionally disabled, as there's not need at higher zoom levels).
+The earth curvature at low zoom levels (up to 6 but should be less probably), is not rendering correctly, there should be some precision error, or I am misunderstanding someting about tile/pixel to latitute conversion.
 
 Mesh size is still too big (15MB per tile generated),
-need some logic to skip unnecessary vertices.
+need some logic to skip unnecessary vertices (I have some ideas, but will implement after first release on asset library).
 
-Dinalically generated normal maps would come handy too.
+Dinamically generated normal maps would come handy too, especially at low zooms (approx 1 to 4), as altitudes are irrelevant, but still at certain light inclinations it should project some sort of shadows.
