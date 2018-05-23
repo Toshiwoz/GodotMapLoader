@@ -99,11 +99,65 @@ static func lat_lon_on_sphere_v(_radius, _lat, _lon):
 #	br.z = br.z * _radius
 #	return br.z
 
-static func tile_on_sphere2(_radius, _tilex, _tiley, _zoom):
+static func tile_on_sphere_v(_radius, _tilex, _tiley, _zoom):
 	var n = pow(2.0, _zoom)
-	var latr = -(PI/2-atan(sinh(PI * (1.0 - 2.0 * (float(_tiley/n))))))
+	var latr = (PI/2-atan(sinh(PI * (1.0 - 2.0 * (float(_tiley/n))))))
 	var lonr = deg2rad(_tilex * (360.0 / n) - 180.0)
 	var br = Vector3(_radius, 0, 0)
 	br = br.rotated(Vector3(0,0,1), latr)
 	br = br.rotated(Vector3(0,-1,0), lonr)
 	return br
+	
+static func tile_on_sphere_q(_radius, _tilex, _tiley, _zoom, _verbose = false):
+	var n = pow(2.0, _zoom)
+	var latr = atan(sinh(PI * (1.0 - 2.0 * float(_tiley) / n)))
+	var lonr = deg2rad(_tilex * (360.0 / n) - 180.0)
+	var latmr = atan(sinh(PI * (1.0 - 2.0 * floor(_tiley) / n)))
+	var lonmr = deg2rad(floor(_tilex) * (360.0 / n) - 180.0)
+	var latnr = atan(sinh(PI * (1.0 - 2.0 * floor(_tiley+1) / n)))
+	var lonnr = deg2rad(floor(_tilex+1) * (360.0 / n) - 180.0)
+	var proportion = 1
+	if(abs(latr) < abs(latnr)):
+		proportion = adjust_dist_from_latzoom(_radius*2*PI, latnr, _zoom)/adjust_dist_from_latzoom(_radius*2*PI, latr, _zoom)
+	else:
+		proportion = adjust_dist_from_latzoom(_radius*2*PI, latr, _zoom)/adjust_dist_from_latzoom(_radius*2*PI, latnr, _zoom)
+			
+	var latam = _tiley - floor(_tiley)
+	var lonam = _tilex - floor(_tilex)
+#	var latam = 1.0-(abs(latnr)-abs(latr))/(abs(latnr)-abs(latmr)) * proportion
+#	var lonam = 1.0-(abs(lonnr)-abs(lonr))/(abs(lonnr)-abs(lonmr))
+	var orig = Vector3(0, 0, _radius)
+	var axis = Vector3(-1,0,0)
+	var q1 = Quat(axis,latmr)
+	var q2 = Quat(axis, latnr)
+	var qi = q1.slerp(q2, latam)
+	var sli = qi.xform(orig)
+	axis = Vector3(0,1,0)
+	q1 = Quat(axis, lonmr)
+	q2 = Quat(axis, lonnr)
+	qi = q1.slerp(q2, lonam)
+	sli = qi.xform(sli)
+	if(_verbose):
+		print("Item pos: %s - Amount: %f/%f, MIN lat/lon: %f/%f, MAX lat/lon: %f/%f" % [var2str(sli), latam, lonam, latr, lonr, latnr, lonnr])
+	return sli
+	
+static func tile_on_sphere_q2(_radius, _tilex, _tiley, _xam, _yam, _zoom, _verbose = false):
+	var n = pow(2.0, _zoom)
+	var latmr = atan(sinh(PI * (1.0 - 2.0 * floor(_tiley) / n)))
+	var lonmr = deg2rad(floor(_tilex) * (360.0 / n) - 180.0)
+	var latnr = atan(sinh(PI * (1.0 - 2.0 * floor(_tiley+1) / n)))
+	var lonnr = deg2rad(floor(_tilex+1) * (360.0 / n) - 180.0)
+	var orig = Vector3(0, 0, _radius)
+	var axis = Vector3(-1,0,0)
+	var q1 = Quat(axis,latmr)
+	var q2 = Quat(axis, latnr)
+	var qi = q1.slerp(q2, _yam)
+	var sli = qi.xform(orig)
+	axis = Vector3(0,1,0)
+	q1 = Quat(axis, lonmr)
+	q2 = Quat(axis, lonnr)
+	qi = q1.slerp(q2, _xam)
+	sli = qi.xform(sli)
+	if(_verbose):
+		print("Item pos: %s - Amount: %f/%f, MIN lat/lon: %f/%f, MAX lat/lon: %f/%f" % [var2str(sli), _xam, _yam, latmr, lonmr, latnr, lonnr])
+	return sli

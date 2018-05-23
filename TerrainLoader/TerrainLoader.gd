@@ -145,8 +145,6 @@ func generate_terrain_meshes():
 					terrain.add_child(terr_node)
 					terr_node.set_owner(scene_root)
 					terr_node.SubsetShift = true
-					print(TerrainHeightMap.get_size())
-					print(TerrainTexture.get_size())
 					terr_node.initialize_map(zoom_level, tilex, tiley, HeighMultiplier, subdivide, tile_number, TerrainHeightMap, TerrainTexture)
 
 	

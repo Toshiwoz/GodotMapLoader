@@ -4,6 +4,8 @@
 
 [node name="MainScene" type="Spatial" index="0"]
 
+_sections_unfolded = [ "Pause" ]
+
 [node name="DirectionalLight" type="DirectionalLight" parent="." index="0"]
 
 transform = Transform( 1, 0, 0, 0, -0.988739, 0.14965, 0, -0.14965, -0.988739, 0, 9.28216, 0 )
@@ -42,7 +44,7 @@ h_offset = 0.0
 v_offset = 0.0
 doppler_tracking = 0
 projection = 0
-current = false
+current = true
 fov = 70.0
 size = 1.0
 near = 0.05
