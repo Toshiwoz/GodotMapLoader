@@ -1,9 +1,3 @@
-# Some coordinate you can use to test the script
-# IGUAZU FALLS lat: -25.695277777778 lon: -54.436666666667
-# FLORENCE - lat: 43.771388888889 lon: 11.254166666667
-# COTOPAXI lat: -0.680556,-78.437778
-# MOUNT FUJI lat: 35.36 lon: 138.73
-# HIMALAYA lat: 27.988056, lon: 86.925278
 tool
 extends Spatial
 
@@ -19,8 +13,10 @@ export(int) var tilex = 0 setget , _get_tilex
 export(int) var tiley = 0 setget , _get_tiley
 export(int) var pxlx = 0 setget , _get_pxlx
 export(int) var pxly = 0 setget , _get_pxly
-export(Image) onready var TerrainHeightMap
-export(Image) onready var TerrainTexture
+export(bool) var test setget get_tiles_positions
+
+var TerrainHeightMap
+var TerrainTexture
 
 func _get_tilex():
 	self._setCoords(lon, lat, zoom_level)
@@ -45,7 +41,6 @@ func _setZoom(_newval):
 		self._setCoords(lon, lat, zoom_level)
 		_request_map(tilex, tiley, zoom_level, false)
 		_request_map(tilex, tiley, zoom_level, true)
-			
 
 func _set_lon(_newval):
 	if(lon != _newval):
@@ -77,22 +72,25 @@ func _request_map(_tilex = 0, _tiley = 0, _zoom = 1, _isheightmap = true):
 	if(self.is_inside_tree()):
 		if(has_node("MapLoaderTexture") 
 			&& has_node("MapLoaderHeightMap")):
-			var map_type = "terrain-rgb"
-			var double_size = ""
-			if(!_isheightmap):
-				map_type = "satellite"
-				double_size = "@2x"
-			print("Requesting %s tile x/y/z %d/%d/%d" % [map_type, _tilex, _tiley, _zoom])
-			var url = "https://api.mapbox.com/v4/mapbox." + map_type + "/" + var2str(_zoom) + "/" + var2str(_tilex) + "/" + var2str(_tiley) + double_size + ".pngraw?access_token=" + access_token
-			print(url)
-			if(_isheightmap):
-				$MapLoaderHeightMap.cancel_request()
-				$MapLoaderHeightMap.request(url
-				, PoolStringArray(), false, 0)
+			if(access_token.length() == 0):
+				print("Access token is not set")
 			else:
-				$MapLoaderTexture.cancel_request()
-				$MapLoaderTexture.request(url
-				, PoolStringArray(), false, 0)
+				var map_type = "terrain-rgb"
+				var double_size = ""
+				if(!_isheightmap):
+					map_type = "satellite"
+					double_size = "@2x"
+				print("Requesting %s tile x/y/z %d/%d/%d" % [map_type, _tilex, _tiley, _zoom])
+				var url = "https://api.mapbox.com/v4/mapbox." + map_type + "/" + var2str(_zoom) + "/" + var2str(_tilex) + "/" + var2str(_tiley) + double_size + ".pngraw?access_token=" + access_token
+				print(url)
+				if(_isheightmap):
+					$MapLoaderHeightMap.cancel_request()
+					$MapLoaderHeightMap.request(url
+					, PoolStringArray(), false, 0)
+				else:
+					$MapLoaderTexture.cancel_request()
+					$MapLoaderTexture.request(url
+					, PoolStringArray(), false, 0)
 	
 func print_response_messages(result, response_code, headers, body):
 	if(result == HTTPRequest.RESULT_SUCCESS):
@@ -129,15 +127,19 @@ func generate_terrain_meshes():
 				var scene_root = tree.current_scene
 				if(scene_root == null):
 					scene_root = tree.edited_scene_root
-				for nd in self.get_children():
-					if(nd.name.begins_with("terrain")):
-						print("removing node " + nd.name)
-						nd.free()
-				var terrain = Spatial.new()
-				terrain.name = "terrain"
-				self.add_child(terrain)
-				terrain.set_owner(scene_root)
-				var subdivide = TerrainHeightMap.get_size().x / 256
+					
+				var terrain = find_node("terrain")
+				if(terrain == null):
+					terrain = Spatial.new()
+					terrain.name = "terrain"
+					self.add_child(terrain)
+					terrain.set_owner(scene_root)
+					
+				for tile in terrain.get_children():
+					if(tile.Zoom == self.zoom_level && tile.TileX == self.tilex && tile.TileY == self.tiley):
+						print("replacing tile " + tile.name)
+						tile.free()
+				var subdivide = 1 #TerrainHeightMap.get_size().x / 256 #For now no subdivision
 				var total_tiles = subdivide * subdivide
 				for tile_number in range(1, total_tiles + 1):
 					var terr_node = tsh.instance()
@@ -147,7 +149,13 @@ func generate_terrain_meshes():
 					terr_node.SubsetShift = true
 					terr_node.initialize_map(zoom_level, tilex, tiley, HeighMultiplier, subdivide, tile_number, TerrainHeightMap, TerrainTexture)
 
-	
+func get_tiles_positions(_newval):
+	print("getting tiles...")
+	var terrain = find_node("terrain")
+	var tile_dict = []
+	for tile in terrain.get_children():
+		tile_dict[tile.Zoom][tile.TileX][tile.TileY] = tile.name
+
 func _on_MapLoaderHeightMap_request_completed(result, response_code, headers, body):
 	print_response_messages(result, response_code, headers, body)
 	TerrainHeightMap = get_image_from_bytes(body)

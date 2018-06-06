@@ -19,6 +19,13 @@ create a scene with directional light, a camera, etc.
 Then drag in it the TerrainLoader scene (so an instance of it).
 And then in the node's properties set latitude, longitude and zoom level (sorry, it loads every time you change each of those values.. will resolve that once it will become an actual Addon.
 
+###Some coordinate you can use to test the script
+IGUAZU FALLS lat: -25.695277777778 lon: -54.436666666667
+FLORENCE - lat: 43.771388888889 lon: 11.254166666667
+COTOPAXI lat: -0.680556,-78.437778
+MOUNT FUJI lat: 35.36 lon: 138.73
+HIMALAYA lat: 27.988056, lon: 86.925278
+
 ## TODOs
 
 The earth curvature at low zoom levels (up to 6 but should be less probably), is not rendering correctly, there should be some precision error, or I am misunderstanding someting about tile/pixel to latitute conversion.
