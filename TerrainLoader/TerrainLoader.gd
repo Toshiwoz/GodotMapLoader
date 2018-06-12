@@ -148,6 +148,8 @@ func generate_terrain_meshes():
 					terr_node.set_owner(scene_root)
 					terr_node.SubsetShift = true
 					terr_node.initialize_map(zoom_level, tilex, tiley, HeighMultiplier, subdivide, tile_number, TerrainHeightMap, TerrainTexture)
+					var t = Thread.new()
+					t.start(terr_node, "SetMapShapeAndCollision", null)
 
 func get_tiles_positions(_newval):
 	print("getting tiles...")

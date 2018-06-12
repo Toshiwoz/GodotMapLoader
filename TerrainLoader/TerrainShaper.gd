@@ -80,10 +80,10 @@ func initialize_map(_zoom = 1, _tilex = 0, _tiley = 0, _hmultiplier = 1, _divide
 	TerrainImage = _hm_img
 	TerrainTextureImage = _txtr_img
 	MeshPath = _mesh_path
-	if(_hm_img.get_size().length() > 0):
-		SetMapShapeAndCollision()
+#	if(_hm_img.get_size().length() > 0):
+#		SetMapShapeAndCollision()
 	
-func SetMapShapeAndCollision():
+func SetMapShapeAndCollision(params = null):
 	if(ShapeMesh != null):
 		$TerrainMesh.mesh = ShapeMesh
 	if(Coll != null):
@@ -118,5 +118,6 @@ func SetMapShapeAndCollision():
 			var x_shift = Coords["y"] * (actual_size - dist) - (actual_size - dist) * (DivideInto/2 + 0.5)
 			var z_shift = - Coords["x"] * (actual_size - dist) + (actual_size - dist) * (DivideInto/2 + 0.5)
 			self.translate(Vector3(x_shift, 0, z_shift))
+		print("Terrain mesh generated")
 		
 	
