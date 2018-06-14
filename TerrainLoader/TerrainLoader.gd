@@ -9,52 +9,49 @@ export(float, -180, 180) onready var lon setget _set_lon
 export(float, -85.0511, 85.0511) onready var lat setget _set_lat
 export(int, 1, 15, 1) onready var zoom_level setget _setZoom
 export(float, 0.1, 50, 0.1) onready var HeighMultiplier
-export(int) var tilex = 0 setget , _get_tilex
-export(int) var tiley = 0 setget , _get_tiley
+export(int) var tilex = 0 setget _set_tilex
+export(int) var tiley = 0 setget _set_tiley
 export(int) var pxlx = 0 setget , _get_pxlx
 export(int) var pxly = 0 setget , _get_pxly
-export(bool) var test setget get_tiles_positions
 
 var TerrainHeightMap
 var TerrainTexture
+var ThreadML = Thread.new()
 
-func _get_tilex():
-	self._setCoords(lon, lat, zoom_level)
-	return tilex
+func _set_tilex(_newval):
+	if(tilex != _newval):
+		tilex = _newval
+		pxlx = 1
+		pxly = 1
+		self._setTiles(tilex, tiley, zoom_level)
 	
-func _get_tiley():
-	self._setCoords(lon, lat, zoom_level)
-	return tiley
-
+func _set_tiley(_newval):
+	if(tiley != _newval):
+		tiley = _newval
+		pxlx = 1
+		pxly = 1
+		self._setTiles(tilex, tiley, zoom_level)
 
 func _get_pxlx():
-	self._setCoords(lon, lat, zoom_level)
 	return pxlx
 	
 func _get_pxly():
-	self._setCoords(lon, lat, zoom_level)
 	return pxly
 
-func _setZoom(_newval):	
+func _setZoom(_newval):
 	if(zoom_level != _newval):
 		zoom_level = _newval
 		self._setCoords(lon, lat, zoom_level)
-		_request_map(tilex, tiley, zoom_level, false)
-		_request_map(tilex, tiley, zoom_level, true)
 
 func _set_lon(_newval):
 	if(lon != _newval):
 		lon = _newval
 		self._setCoords(lon, lat, zoom_level)
-		_request_map(tilex, tiley, zoom_level, false)
-		_request_map(tilex, tiley, zoom_level, true)
 
 func _set_lat(_newval):
 	if(lat != _newval):
 		lat = _newval
 		self._setCoords(lon, lat, zoom_level)
-		_request_map(tilex, tiley, zoom_level, false)
-		_request_map(tilex, tiley, zoom_level, true)
 		
 
 func _setCoords(_lon = 0, _lat = 0, _zoom = 1):
@@ -67,14 +64,29 @@ func _setCoords(_lon = 0, _lat = 0, _zoom = 1):
 		tiley = tile["tiley"]
 		pxlx = tile["pxlx"]
 		pxly = tile["pxly"]
+		_request_map(tilex, tiley, zoom_level, false)
+		_request_map(tilex, tiley, zoom_level, true)
+		
+func _setTiles(_tilex = 0, _tiley = 0, _zoom = 1):
+	if(self.is_inside_tree() && _tilex != null && _tiley != null && _zoom != null):
+		print("Setting coords")
+		TerrainHeightMap = Image.new()
+		TerrainTexture = Image.new()
+		var latlon = smf.tile_to_latlon(_tilex, _tiley, _zoom)
+		lat = latlon.lat
+		lon = latlon.lon
+		_request_map(tilex, tiley, zoom_level, false)
+		_request_map(tilex, tiley, zoom_level, true)
 	
 func _request_map(_tilex = 0, _tiley = 0, _zoom = 1, _isheightmap = true):
 	if(self.is_inside_tree()):
-		if(has_node("MapLoaderTexture") 
+		if(has_node("MapLoaderTexture")
 			&& has_node("MapLoaderHeightMap")):
 			if(access_token.length() == 0):
 				print("Access token is not set")
-			else:
+			elif(getTilexyz(_tilex, _tiley, _zoom) != null):
+				print("this tile already exists, remove it first")
+			else:				
 				var map_type = "terrain-rgb"
 				var double_size = ""
 				if(!_isheightmap):
@@ -119,44 +131,48 @@ func get_image_from_bytes(_bytes, _save_path = null):
 	return resp_image
 	
 func generate_terrain_meshes():
-		if(TerrainHeightMap != null && TerrainTexture != null):
-			if(TerrainHeightMap.get_size().length() > 0
-			&& TerrainTexture.get_size().length() > 0):
-				print("Adding Terrain tiles...")
-				var tree = self.get_tree()
-				var scene_root = tree.current_scene
-				if(scene_root == null):
-					scene_root = tree.edited_scene_root
+	if(TerrainHeightMap != null && TerrainTexture != null):
+		if(TerrainHeightMap.get_size().length() > 0
+		&& TerrainTexture.get_size().length() > 0):
+			print("Adding Terrain tiles...")
+			var tree = self.get_tree()
+			var scene_root = tree.current_scene
+			if(scene_root == null):
+				scene_root = tree.edited_scene_root
 					
-				var terrain = find_node("terrain")
-				if(terrain == null):
-					terrain = Spatial.new()
-					terrain.name = "terrain"
-					self.add_child(terrain)
-					terrain.set_owner(scene_root)
+			var terrain = find_node("terrain")
+			if(terrain == null):
+				terrain = Spatial.new()
+				terrain.name = "terrain"
+				self.add_child(terrain)
+				terrain.set_owner(scene_root)
 					
-				for tile in terrain.get_children():
-					if(tile.Zoom == self.zoom_level && tile.TileX == self.tilex && tile.TileY == self.tiley):
-						print("replacing tile " + tile.name)
-						tile.free()
-				var subdivide = 1 #TerrainHeightMap.get_size().x / 256 #For now no subdivision
-				var total_tiles = subdivide * subdivide
-				for tile_number in range(1, total_tiles + 1):
-					var terr_node = tsh.instance()
-					terr_node.name = "tile_" + var2str(tile_number)
-					terrain.add_child(terr_node)
-					terr_node.set_owner(scene_root)
-					terr_node.SubsetShift = true
-					terr_node.initialize_map(zoom_level, tilex, tiley, HeighMultiplier, subdivide, tile_number, TerrainHeightMap, TerrainTexture)
-					var t = Thread.new()
-					t.start(terr_node, "SetMapShapeAndCollision", null)
+			for tile in terrain.get_children():
+				# Check if we have next tiles, then generate junction meshes
+				var next_tile_x = getTilexyz(tile.TileX + 1, tile.TileY, tile.Zoom)
+				var next_tile_y = getTilexyz(tile.TileX, tile.TileY + 1, tile.Zoom)
+				if(tile.Zoom == self.zoom_level && tile.TileX == self.tilex && tile.TileY == self.tiley):
+					print("replacing tile " + tile.name)
+					tile.free()
+			var subdivide = 1 #TerrainHeightMap.get_size().x / 256 #For now no subdivision
+			var total_tiles = subdivide * subdivide
+			for tile_number in range(1, total_tiles + 1):
+				var terr_node = tsh.instance()
+				terr_node.name = "tile_%s_%s_%s" % [tilex, tiley, zoom_level]
+				terrain.add_child(terr_node)
+				terr_node.set_owner(scene_root)
+				terr_node.SubsetShift = true
+				terr_node.initialize_map(zoom_level, tilex, tiley, HeighMultiplier, subdivide, tile_number, TerrainHeightMap, TerrainTexture)
+				ThreadML = Thread.new()
+				ThreadML.start(terr_node, "SetMapShapeAndCollision", null)
 
-func get_tiles_positions(_newval):
-	print("getting tiles...")
+func getTilexyz(_x, _y, _z):
 	var terrain = find_node("terrain")
-	var tile_dict = []
-	for tile in terrain.get_children():
-		tile_dict[tile.Zoom][tile.TileX][tile.TileY] = tile.name
+	if(terrain != null):
+		for tile in terrain.get_children():
+			if(tile.TileX == _x && tile.TileY == _y && tile.Zoom == _z):
+				return tile
+	return null
 
 func _on_MapLoaderHeightMap_request_completed(result, response_code, headers, body):
 	print_response_messages(result, response_code, headers, body)

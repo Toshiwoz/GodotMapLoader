@@ -14,12 +14,13 @@ export(String, FILE, "*.png, *.jpg, *.jpeg") var TerrainTexturePath setget _setM
 export(String, FILE, "*.tres") var MeshPath
 export(Mesh) var ShapeMesh
 export(ConcavePolygonShape) var Coll
+export(Image) var TerrainImage = Image.new()
+export(Image) var TerrainTextureImage = Image.new()
 
 var hmp = preload("res://TerrainLoader/HeightmapParser.gd")
 var NumberOfSections = 4
 var HeightMap = []
-var TerrainImage = Image.new()
-var TerrainTextureImage = Image.new()
+var hmTool = hmp.new()
 
 func _setZoom(_newvalue):
 	if(Zoom != _newvalue):
@@ -79,21 +80,18 @@ func initialize_map(_zoom = 1, _tilex = 0, _tiley = 0, _hmultiplier = 1, _divide
 	SubsetShift = _subsetShift
 	TerrainImage = _hm_img
 	TerrainTextureImage = _txtr_img
-	MeshPath = _mesh_path
-#	if(_hm_img.get_size().length() > 0):
-#		SetMapShapeAndCollision()
+	MeshPath = _mesh_path	
+	$TerrainMesh.material_override = hmTool.SetMaterialTexture(_txtr_img)
 	
 func SetMapShapeAndCollision(params = null):
 	if(ShapeMesh != null):
 		$TerrainMesh.mesh = ShapeMesh
 	if(Coll != null):
 		$TerrainCollision.shape = Coll
-	if($TerrainMesh.mesh == null 
-		&& TerrainImage != null
+	if(TerrainImage != null
 		&& TerrainTextureImage != null
 		&& !TerrainImage.is_empty()
 		&& !TerrainTextureImage.is_empty()):
-		var hmTool = hmp.new()
 #		HeightMap = hmTool.GenerateHeightMap(TerrainImage, TerrainTextureImage, Subset, DivideInto)
 #		$TerrainMesh.mesh = hmTool.createMesh(HeightMap, Size, HeigthMultiplier, Zoom, Subset, DivideInto, SubsetShift, MeshPath)
 		if(Zoom > 6):
@@ -115,8 +113,8 @@ func SetMapShapeAndCollision(params = null):
 			var dist = 1
 			if(Size != 0):
 				actual_size = Size
-			var x_shift = Coords["y"] * (actual_size - dist) - (actual_size - dist) * (DivideInto/2 + 0.5)
-			var z_shift = - Coords["x"] * (actual_size - dist) + (actual_size - dist) * (DivideInto/2 + 0.5)
+			var x_shift = Coords["y"] * (actual_size - dist) - (actual_size - dist) * 0.5
+			var z_shift = - Coords["x"] * (actual_size - dist) + (actual_size - dist) * 0.5
 			self.translate(Vector3(x_shift, 0, z_shift))
 		print("Terrain mesh generated")
 		

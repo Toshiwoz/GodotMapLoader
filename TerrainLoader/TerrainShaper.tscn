@@ -1,6 +1,13 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://TerrainLoader/TerrainShaper.gd" type="Script" id=1]
+
+[sub_resource type="PlaneMesh" id=1]
+
+custom_aabb = AABB( 0, 0, 0, 0, 0, 0 )
+size = Vector2( 256, 256 )
+subdivide_width = 0
+subdivide_depth = 0
 
 [node name="TerrainShaper" type="StaticBody" index="0"]
 
@@ -25,6 +32,7 @@ TerrainHeightMapPath = null
 TerrainTexturePath = null
 MeshPath = null
 ShapeMesh = null
+Coll = null
 
 [node name="TerrainCollision" type="CollisionShape" parent="." index="0"]
 
@@ -42,8 +50,9 @@ lod_min_distance = 0.0
 lod_min_hysteresis = 0.0
 lod_max_distance = 0.0
 lod_max_hysteresis = 0.0
-mesh = null
+mesh = SubResource( 1 )
 skeleton = NodePath("..")
+material/0 = null
 _sections_unfolded = [ "Geometry", "LOD" ]
 
 

@@ -95,6 +95,13 @@ func SetPixelVertices(_hmPicture = Image.new(), _xpxl = 0, _ypxl = 0, _meshdatat
 			_meshdatatool.set_vertex(vidx + vx, vtx)
 		return smf.get_height_from_color(pxl_tl)
 
+func SetMaterialTexture(_txtr_img):
+	var imgtxtr = ImageTexture.new()
+	imgtxtr.create_from_image(_txtr_img)
+	var mat = earth_mat.duplicate() #This way it clones the material for each instance
+	mat.albedo_texture = imgtxtr
+	return mat
+
 #	_subset should be from 1 to _divideinto * _divideinto
 #	_divideinto should be from 1 to 100
 #	(considering an image of max 512x512px)
@@ -210,9 +217,6 @@ func createMesh(ht, total_size = 0, height_multiplier = 1, Zoom = 1, _subset = 1
 		var material = ResourceLoader.load("res://TerrainLoader/material_vertex_color.tres")
 		surf_tool.set_material(material)
 		var mesh = surf_tool.commit()
-#		var mesh_path = "res://mesh_lat" + var2str(latitude) + "_lon" + var2str(longitude) + "_tile" + var2str(Subset) + ".tres"
-#		ResourceSaver.save(mesh_path, mesh)
-#		$TerrainMesh.mesh = ResourceLoader.load(mesh_path)
 		var x_shift = 0
 		var z_shift= 0
 		var Coords = _subsetToXYCoords(_subset, _divideinto)
@@ -408,11 +412,8 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		surf_tool.generate_normals()
 		surf_tool.index()
 		
-		var imgtxtr = ImageTexture.new()
-		imgtxtr.create_from_image(txtr_sbs_img)
-		var mat = earth_mat.duplicate() #This way it clones the material for each instance
-		mat.albedo_texture = imgtxtr
-		surf_tool.set_material(mat)
+		
+		surf_tool.set_material(SetMaterialTexture(txtr_sbs_img))
 		var mesh = surf_tool.commit()
 		var endtt = float(OS.get_ticks_msec())
 		print("Mesh generation"
