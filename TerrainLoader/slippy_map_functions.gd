@@ -1,6 +1,10 @@
+# Licensed under the MIT License.
+# Copyright (c) 2018 Leonardo (Toshiwo) Araki
+
 extends Object
 #	The following functions are the GDScript conversion of:
 #	https://help.openstreetmap.org/questions/747/given-a-latlon-how-do-i-find-the-precise-position-on-the-tile
+# ...or maybe they where, I forgot already how much have I changed here.
 
 const EARTH_RADIUS = 6371000
 const MAX_LAT = 85.0511
@@ -43,8 +47,8 @@ static func latlon_to_tile_pxl(lat_deg, lon_deg, zoom):
 	var tiley = int(ytile_f)
 	var pxlx = int(256 * (xtile_f - tilex))
 	var pxly = int(256 * (ytile_f - tiley))
-	return {"tilex":tilex, "tiley":tiley,
-			"pxlx":pxlx, "pxly":pxly}
+	return {tilex=tilex, tiley=tiley,
+			pxlx=pxlx, pxly=pxly}
 
 static func tile_to_latlon(_tilex, _tiley, _zoom):
 	var n = float(pow(2.0, _zoom))

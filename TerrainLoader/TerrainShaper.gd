@@ -1,3 +1,6 @@
+# Licensed under the MIT License.
+# Copyright (c) 2018 Leonardo (Toshiwo) Araki
+
 tool
 extends StaticBody
 
@@ -91,9 +94,12 @@ func SetMapShapeAndCollision(params = null):
 	if(TerrainImage != null
 		&& TerrainTextureImage != null
 		&& !TerrainImage.is_empty()
-		&& !TerrainTextureImage.is_empty()):
+		&& !TerrainTextureImage.is_empty()
+		&& ($TerrainCollision.shape == null
+		|| $TerrainMesh.mesh == null)):
 #		HeightMap = hmTool.GenerateHeightMap(TerrainImage, TerrainTextureImage, Subset, DivideInto)
 #		$TerrainMesh.mesh = hmTool.createMesh(HeightMap, Size, HeigthMultiplier, Zoom, Subset, DivideInto, SubsetShift, MeshPath)
+
 		if(Zoom > 6):
 			$TerrainMesh.mesh = hmTool.createMeshFromImage(TerrainImage, TerrainTextureImage, 0, HeigthMultiplier, Zoom, TileX, TileY, Subset, DivideInto, false)
 		else:
@@ -118,4 +124,5 @@ func SetMapShapeAndCollision(params = null):
 			self.translate(Vector3(x_shift, 0, z_shift))
 		print("Terrain mesh generated")
 		
-	
+func ModifyArea():
+	pass

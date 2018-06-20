@@ -97,7 +97,7 @@ text = "Enter Himalaya"
 flat = false
 align = 1
 script = ExtResource( 2 )
-_sections_unfolded = [ "custom_fonts" ]
+_sections_unfolded = [ "Material" ]
 
 [connection signal="pressed" from="Button" to="Button" method="_on_Button_pressed"]
 

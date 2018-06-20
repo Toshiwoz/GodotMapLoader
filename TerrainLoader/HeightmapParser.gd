@@ -1,3 +1,6 @@
+# Licensed under the MIT License.
+# Copyright (c) 2018 Leonardo (Toshiwo) Araki
+
 tool
 extends Spatial
 
@@ -48,6 +51,7 @@ static func GetMaxMinHight(_img = Image.new()):
 	_img.unlock()
 	return MaxMin
 
+# This is the formula that MapBox provides to convert HM image into meters
 static func GetHeightFromPxl(_pxl):
 	return -10000 + ((_pxl.r8 * 256 * 256 + _pxl.g8 * 256 + _pxl.b8) * 0.1)
 
@@ -247,14 +251,19 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		var startt = float(OS.get_ticks_msec())
 		var hm_sbs_img = GetImageSubset(_hm_img, _divideinto, _subset, Vector2(lastvalx, lastvaly))
 		var txtr_sbs_img = GetImageSubset(_txtr_img, _divideinto, _subset, Vector2(lastvalx, lastvaly))
+		if(_divideinto == 1):
+			hm_sbs_img = _hm_img
+			txtr_sbs_img = _txtr_img
 		var max_min_h = GetMaxMinHight(hm_sbs_img)
 		hm_sbs_img.lock()
 		txtr_sbs_img.lock()
 		var width = hm_sbs_img.get_width()
 		var heigth = hm_sbs_img.get_height()
 		var step_size = 2
-		var rangeX = range(0,width - step_size, step_size)
-		var rangeY = range(0,heigth - step_size, step_size)
+		var rangeX = range(0,width, step_size)
+		var rangeY = range(0,heigth, step_size)
+		var x_limiter = 0
+		var y_limiter = 0
 		var pxl_mtrs_max = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, _tiley, Zoom)
 		if(pxl_mtrs_max < smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, float(_tiley+1), Zoom)):
 			pxl_mtrs_max = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, float(_tiley+1), Zoom)
@@ -305,8 +314,12 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		for y in rangeY:
 			if(maxpxls.y < y):
 				maxpxls.y = y
+			if(heigth-y <= 2):
+				y_limiter = 1
+			x_limiter = 0
 			# getting adjusted distances
-			# as it should change only on latitute change, we adjust it here
+			# as it should change only on latitute change, 
+			# we adjust it here in the y loop
 			pxl_mtrs_t = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, float(_tiley) + float(y)/float(heigth), Zoom)
 			pxl_mtrs_b = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, float(_tiley) + float(y+1)/float(heigth), Zoom)
 			pxl_mtrs_b2 = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, float(_tiley) + float(y+2)/float(heigth), Zoom)
@@ -317,40 +330,43 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 			for x in rangeX:
 				if(maxpxls.x < x):
 					maxpxls.x = x
+				if(width-x <= 2):
+					x_limiter = 1
 				arr_vtx.resize(0)
 				arr_uvs.resize(0)
 				arr_cols.resize(0)
 				if(_remove_offset):
 					alt_tl = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y)) - max_min_h.minh
 					alt_tr = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y)) - max_min_h.minh
-					alt_tr2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2, y)) - max_min_h.minh
+					alt_tr2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2 - x_limiter, y)) - max_min_h.minh
 					alt_bl = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y + 1)) - max_min_h.minh
-					alt_b2l = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y + 2)) - max_min_h.minh
+					alt_b2l = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y + 2 - y_limiter)) - max_min_h.minh
 					alt_br = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y + 1)) - max_min_h.minh
-					alt_b2r = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y + 2)) - max_min_h.minh
-					alt_br2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2, y + 1)) - max_min_h.minh
-					alt_b2r2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2, y + 2)) - max_min_h.minh
+					alt_b2r = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y + 2 - y_limiter)) - max_min_h.minh
+					alt_br2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2 - x_limiter, y + 1)) - max_min_h.minh
+					alt_b2r2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2 - x_limiter, y + 2 - y_limiter)) - max_min_h.minh
+					
 				else:
 					alt_tl = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y)) 
 					alt_tr = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y))
-					alt_tr2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2, y))
+					alt_tr2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2 - x_limiter, y))
 					alt_bl = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y + 1))
-					alt_b2l = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y + 2))
+					alt_b2l = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y + 2 - y_limiter))
 					alt_br = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y + 1))
-					alt_b2r = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y + 2))
-					alt_br2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2, y + 1))
-					alt_b2r2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2, y + 2))
+					alt_b2r = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y + 2 - y_limiter))
+					alt_br2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2 - x_limiter, y + 1))
+					alt_b2r2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2 - x_limiter, y + 2 - y_limiter))
 					
 				if(color_vertices):
 					txr_tl = txtr_sbs_img.get_pixel(x, y)
 					txr_tr = txtr_sbs_img.get_pixel(x + 1, y)
-					txr_tr2 = txtr_sbs_img.get_pixel(x + 2, y)
+					txr_tr2 = txtr_sbs_img.get_pixel(x + 2 - x_limiter, y)
 					txr_bl = txtr_sbs_img.get_pixel(x, y + 1)
-					txr_b2l = txtr_sbs_img.get_pixel(x, y + 2)
+					txr_b2l = txtr_sbs_img.get_pixel(x, y + 2 - y_limiter)
 					txr_br = txtr_sbs_img.get_pixel(x + 1, y + 1)
-					txr_b2r = txtr_sbs_img.get_pixel(x + 2, y + 1)
-					txr_br2 = txtr_sbs_img.get_pixel(x + 1, y + 2)
-					txr_b2r2 = txtr_sbs_img.get_pixel(x + 2, y + 2)
+					txr_b2r = txtr_sbs_img.get_pixel(x + 2 - x_limiter, y + 1)
+					txr_br2 = txtr_sbs_img.get_pixel(x + 1, y + 2 - y_limiter)
+					txr_b2r2 = txtr_sbs_img.get_pixel(x + 2 - x_limiter, y + 2 - y_limiter)
 					
 				arr_vtx.append(Vector3((x+1 - half_size) * dist_proportion_b, alt_br * dist * altitude_multiplier, (y+1 - half_size) * dist_proportion_b))
 				arr_uvs.append(Vector2(float(x+1)/float(width), float(y+1)/float(heigth)))
@@ -411,7 +427,6 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		txtr_sbs_img.unlock()
 		surf_tool.generate_normals()
 		surf_tool.index()
-		
 		
 		surf_tool.set_material(SetMaterialTexture(txtr_sbs_img))
 		var mesh = surf_tool.commit()

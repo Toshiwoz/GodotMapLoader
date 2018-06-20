@@ -1,3 +1,6 @@
+# Licensed under the MIT License.
+# Copyright (c) 2018 Leonardo (Toshiwo) Araki
+
 tool
 extends Spatial
 
@@ -23,14 +26,14 @@ func _set_tilex(_newval):
 		tilex = _newval
 		pxlx = 1
 		pxly = 1
-		self._setTiles(tilex, tiley, zoom_level)
+		_setTiles(tilex, tiley, zoom_level)
 	
 func _set_tiley(_newval):
 	if(tiley != _newval):
 		tiley = _newval
 		pxlx = 1
 		pxly = 1
-		self._setTiles(tilex, tiley, zoom_level)
+		_setTiles(tilex, tiley, zoom_level)
 
 func _get_pxlx():
 	return pxlx
@@ -41,17 +44,17 @@ func _get_pxly():
 func _setZoom(_newval):
 	if(zoom_level != _newval):
 		zoom_level = _newval
-		self._setCoords(lon, lat, zoom_level)
+		_setCoords(lon, lat, zoom_level)
 
 func _set_lon(_newval):
 	if(lon != _newval):
 		lon = _newval
-		self._setCoords(lon, lat, zoom_level)
+		_setCoords(lon, lat, zoom_level)
 
 func _set_lat(_newval):
 	if(lat != _newval):
 		lat = _newval
-		self._setCoords(lon, lat, zoom_level)
+		_setCoords(lon, lat, zoom_level)
 		
 
 func _setCoords(_lon = 0, _lat = 0, _zoom = 1):
@@ -60,12 +63,15 @@ func _setCoords(_lon = 0, _lat = 0, _zoom = 1):
 		TerrainHeightMap = Image.new()
 		TerrainTexture = Image.new()
 		var tile = smf.latlon_to_tile_pxl(_lat, _lon, _zoom)
-		tilex = tile["tilex"]
-		tiley = tile["tiley"]
-		pxlx = tile["pxlx"]
-		pxly = tile["pxly"]
-		_request_map(tilex, tiley, zoom_level, false)
-		_request_map(tilex, tiley, zoom_level, true)
+		tilex = tile.tilex
+		tiley = tile.tiley
+		pxlx = tile.pxlx
+		pxly = tile.pxly
+		if(getTilexyz(tilex, tiley, _zoom) != null):
+			print("this tile already exists, remove it first")
+		else:
+			_request_map(tilex, tiley, zoom_level, false)
+			_request_map(tilex, tiley, zoom_level, true)
 		
 func _setTiles(_tilex = 0, _tiley = 0, _zoom = 1):
 	if(self.is_inside_tree() && _tilex != null && _tiley != null && _zoom != null):
@@ -75,8 +81,11 @@ func _setTiles(_tilex = 0, _tiley = 0, _zoom = 1):
 		var latlon = smf.tile_to_latlon(_tilex, _tiley, _zoom)
 		lat = latlon.lat
 		lon = latlon.lon
-		_request_map(tilex, tiley, zoom_level, false)
-		_request_map(tilex, tiley, zoom_level, true)
+		if(getTilexyz(_tilex, _tiley, _zoom) != null):
+			print("this tile already exists, remove it first")
+		else:
+			_request_map(tilex, tiley, zoom_level, false)
+			_request_map(tilex, tiley, zoom_level, true)
 	
 func _request_map(_tilex = 0, _tiley = 0, _zoom = 1, _isheightmap = true):
 	if(self.is_inside_tree()):
@@ -84,8 +93,6 @@ func _request_map(_tilex = 0, _tiley = 0, _zoom = 1, _isheightmap = true):
 			&& has_node("MapLoaderHeightMap")):
 			if(access_token.length() == 0):
 				print("Access token is not set")
-			elif(getTilexyz(_tilex, _tiley, _zoom) != null):
-				print("this tile already exists, remove it first")
 			else:				
 				var map_type = "terrain-rgb"
 				var double_size = ""
@@ -103,17 +110,10 @@ func _request_map(_tilex = 0, _tiley = 0, _zoom = 1, _isheightmap = true):
 					$MapLoaderTexture.cancel_request()
 					$MapLoaderTexture.request(url
 					, PoolStringArray(), false, 0)
-	
-func print_response_messages(result, response_code, headers, body):
-	if(result == HTTPRequest.RESULT_SUCCESS):
-		print("Download successful, Body Size: " + var2str(body.size()))
-	else:
-		print("Error/Warning code: " + var2str(result))
-		print("Response code: " + var2str(response_code))
 
 func get_image_from_bytes(_bytes, _save_path = null):
 	var resp_image = Image.new()
-	resp_image.create(256, 256, false, Image.FORMAT_L8)
+	resp_image.create(256, 256, true, Image.FORMAT_L8)
 	var png_error = 0
 	if(_bytes.size() > 33):
 		png_error = resp_image.load_png_from_buffer(_bytes)
@@ -148,9 +148,6 @@ func generate_terrain_meshes():
 				terrain.set_owner(scene_root)
 					
 			for tile in terrain.get_children():
-				# Check if we have next tiles, then generate junction meshes
-				var next_tile_x = getTilexyz(tile.TileX + 1, tile.TileY, tile.Zoom)
-				var next_tile_y = getTilexyz(tile.TileX, tile.TileY + 1, tile.Zoom)
 				if(tile.Zoom == self.zoom_level && tile.TileX == self.tilex && tile.TileY == self.tiley):
 					print("replacing tile " + tile.name)
 					tile.free()
@@ -163,8 +160,14 @@ func generate_terrain_meshes():
 				terr_node.set_owner(scene_root)
 				terr_node.SubsetShift = true
 				terr_node.initialize_map(zoom_level, tilex, tiley, HeighMultiplier, subdivide, tile_number, TerrainHeightMap, TerrainTexture)
-				ThreadML = Thread.new()
-				ThreadML.start(terr_node, "SetMapShapeAndCollision", null)
+#				ThreadML = Thread.new()
+#				ThreadML.start(terr_node, "SetMapShapeAndCollision", null)
+				terr_node.SetMapShapeAndCollision()
+				
+				# Check if we have contiguous tiles, then generate junction meshes
+			for tile in terrain.get_children():
+				var next_tile_x = getTilexyz(tile.TileX + 1, tile.TileY, tile.Zoom)
+				var next_tile_y = getTilexyz(tile.TileX, tile.TileY + 1, tile.Zoom)
 
 func getTilexyz(_x, _y, _z):
 	var terrain = find_node("terrain")
@@ -173,19 +176,23 @@ func getTilexyz(_x, _y, _z):
 			if(tile.TileX == _x && tile.TileY == _y && tile.Zoom == _z):
 				return tile
 	return null
+	
+func handleResponse(result, response_code, headers, body, _IsHeightmap):
+	if(result == HTTPRequest.RESULT_SUCCESS):
+		print("Download successful, Body Size: " + var2str(body.size()))
+		if(_IsHeightmap):
+			TerrainHeightMap = get_image_from_bytes(body)
+		else:
+			TerrainTexture = get_image_from_bytes(body)
+		if(TerrainHeightMap.get_size().length() > 0
+			&& TerrainTexture.get_size().length() > 0):
+			generate_terrain_meshes()
+	else:
+		print("Error/Warning code: " + var2str(result))
+		print("Response code: " + var2str(response_code))
 
 func _on_MapLoaderHeightMap_request_completed(result, response_code, headers, body):
-	print_response_messages(result, response_code, headers, body)
-	TerrainHeightMap = get_image_from_bytes(body)
-	if(TerrainHeightMap.get_size().length() > 0):
-		generate_terrain_meshes()
-	else:
-		print("Image is empty")
+	handleResponse(result, response_code, headers, body, true)
 
 func _on_MapLoaderTexture_request_completed(result, response_code, headers, body):
-	print_response_messages(result, response_code, headers, body)
-	TerrainTexture = get_image_from_bytes(body)
-	if(TerrainTexture.get_size().length() > 0):
-		generate_terrain_meshes()
-	else:
-		print("Image is empty")
+	handleResponse(result, response_code, headers, body, false)
