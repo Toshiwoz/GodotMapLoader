@@ -628,3 +628,43 @@ func CreateMeshFromImage_sph(_hm_img = Image.new(), _txtr_img = Image.new(), tot
 		+ " Min/Max Alt.: " + var2str(max_min_h.minh) + "/" + var2str(max_min_h.maxh)
 		+ " finished in %.2f seconds" % ((endtt - startt)/1000))
 		return mesh
+		
+func GetSideVertices(_mesh = ArrayMesh.new(), _side = Vector2()):
+	var side_vertices = PoolVector3Array()
+	var mdt = MeshDataTool.new()
+	var error = mdt.create_from_surface(_mesh, 0)
+	var mi = MeshInstance.new()
+	mi.mesh = _mesh
+	var mesh_aabb = mi.get_aabb()
+	print(mesh_aabb.end)
+	var plane_max = Vector3()
+	var current_vertex = Vector3()
+	for v in range(mdt.get_vertex_count()):
+		current_vertex = mdt.get_vertex(v)
+		if(_side.x == -1):
+			if(current_vertex.x <= mesh_aabb.position.x):
+				side_vertices.append(current_vertex)
+		if(_side.x == 1):
+			if(current_vertex.x >= mesh_aabb.end.x):
+				side_vertices.append(current_vertex)
+		if(_side.y == -1):
+			if(current_vertex.z <= mesh_aabb.position.z):
+				side_vertices.append(current_vertex)
+		if(_side.y == 1):
+			if(current_vertex.z >= mesh_aabb.end.z):
+				side_vertices.append(current_vertex)
+	return side_vertices
+	
+		
+func AlterTerrainMesh(_mesh = ArrayMesh.new(), _meshX = ArrayMesh.new(), _meshY = ArrayMesh.new()):
+	var mdt = MeshDataTool.new()
+	var error = mdt.create_from_surface(_mesh, 0)
+	var vor = GetSideVertices(_mesh, Vector2(1, 0))
+	var vx = GetSideVertices(_meshX, Vector2(-1, 0))
+	var current_vertex = Vector3()
+	for v in vor:
+		current_vertex = mdt.get_vertex(v)
+		current_vertex.y = vx[v].y
+		mdt.set_vertex(current_vertex)
+	mdt.commit_to_surface(_mesh)
+	return _mesh

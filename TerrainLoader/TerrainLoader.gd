@@ -16,6 +16,7 @@ export(int) var tilex = 0 setget _set_tilex
 export(int) var tiley = 0 setget _set_tiley
 export(int) var pxlx = 0 setget , _get_pxlx
 export(int) var pxly = 0 setget , _get_pxly
+export(bool) onready var ArrangeTiles = false setget _set_arrangetile
 
 var TerrainHeightMap
 var TerrainTexture
@@ -55,7 +56,9 @@ func _set_lat(_newval):
 	if(lat != _newval):
 		lat = _newval
 		_setCoords(lon, lat, zoom_level)
-		
+
+func _set_arrangetile(_newval):
+	ArrangeTilesInGrid()	
 
 func _setCoords(_lon = 0, _lat = 0, _zoom = 1):
 	if(self.is_inside_tree() && _lat != null && _lon != null && _zoom != null):
@@ -155,7 +158,7 @@ func generate_terrain_meshes():
 			var total_tiles = subdivide * subdivide
 			for tile_number in range(1, total_tiles + 1):
 				var terr_node = tsh.instance()
-				terr_node.name = "tile_%s_%s_%s" % [tilex, tiley, zoom_level]
+				terr_node.name = "xyz_%s_%s_%s" % [tilex, tiley, zoom_level]
 				terrain.add_child(terr_node)
 				terr_node.set_owner(scene_root)
 				terr_node.SubsetShift = true
@@ -168,6 +171,24 @@ func generate_terrain_meshes():
 			for tile in terrain.get_children():
 				var next_tile_x = getTilexyz(tile.TileX + 1, tile.TileY, tile.Zoom)
 				var next_tile_y = getTilexyz(tile.TileX, tile.TileY + 1, tile.Zoom)
+
+func ArrangeTilesInGrid():
+	var terrain = find_node("terrain")
+	if(terrain != null):
+		for tile in terrain.get_children():
+			var tileAABB = tile.get_node("TerrainMesh").get_aabb()
+			print("Size x%f/y%f/z%f" % [tileAABB.position.x, tileAABB.position.y, tileAABB.position.z])
+			print("Size w/h: %f/%f" % [tileAABB.size.x, tileAABB.size.z])
+			var next_tile_x = getTilexyz(tile.TileX + 1, tile.TileY, tile.Zoom)
+			var next_tile_y = getTilexyz(tile.TileX, tile.TileY + 1, tile.Zoom)
+			if(next_tile_x != null):
+				next_tile_x.translation.x = tile.translation.x + tileAABB.size.x
+				next_tile_x.translation.y = tile.translation.y
+				next_tile_x.translation.z = tile.translation.z
+			if(next_tile_y != null):
+				next_tile_y.translation.x = tile.translation.x
+				next_tile_y.translation.y = tile.translation.y
+				next_tile_y.translation.z = tile.translation.z + tileAABB.size.z
 
 func getTilexyz(_x, _y, _z):
 	var terrain = find_node("terrain")
