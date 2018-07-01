@@ -124,5 +124,12 @@ func SetMapShapeAndCollision(params = null):
 			self.translate(Vector3(x_shift, 0, z_shift))
 		print("Terrain mesh generated")
 		
-func ModifyArea():
-	pass
+func ModifyArea(_nextx, _nexty):
+	var shapex = null
+	var shapey = null
+	if(_nextx != null):
+		shapex = _nextx.ShapeMesh
+	if(_nexty != null):
+		shapey = _nexty.ShapeMesh
+	hmTool.AlterTerrainMesh(ShapeMesh, shapex, shapey)
+	

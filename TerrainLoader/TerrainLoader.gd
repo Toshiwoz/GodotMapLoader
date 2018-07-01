@@ -58,7 +58,9 @@ func _set_lat(_newval):
 		_setCoords(lon, lat, zoom_level)
 
 func _set_arrangetile(_newval):
-	ArrangeTilesInGrid()	
+	ArrangeTiles = _newval
+	if(ArrangeTiles):
+		ArrangeTilesInGrid()
 
 func _setCoords(_lon = 0, _lat = 0, _zoom = 1):
 	if(self.is_inside_tree() && _lat != null && _lon != null && _zoom != null):
@@ -165,20 +167,17 @@ func generate_terrain_meshes():
 				terr_node.initialize_map(zoom_level, tilex, tiley, HeighMultiplier, subdivide, tile_number, TerrainHeightMap, TerrainTexture)
 #				ThreadML = Thread.new()
 #				ThreadML.start(terr_node, "SetMapShapeAndCollision", null)
-				terr_node.SetMapShapeAndCollision()
-				
-				# Check if we have contiguous tiles, then generate junction meshes
-			for tile in terrain.get_children():
-				var next_tile_x = getTilexyz(tile.TileX + 1, tile.TileY, tile.Zoom)
-				var next_tile_y = getTilexyz(tile.TileX, tile.TileY + 1, tile.Zoom)
+				terr_node.SetMapShapeAndCollision()				
+	if(ArrangeTiles):
+		ArrangeTilesInGrid()
 
 func ArrangeTilesInGrid():
 	var terrain = find_node("terrain")
 	if(terrain != null):
 		for tile in terrain.get_children():
 			var tileAABB = tile.get_node("TerrainMesh").get_aabb()
-			print("Size x%f/y%f/z%f" % [tileAABB.position.x, tileAABB.position.y, tileAABB.position.z])
-			print("Size w/h: %f/%f" % [tileAABB.size.x, tileAABB.size.z])
+#			print("Size x%f/y%f/z%f" % [tileAABB.position.x, tileAABB.position.y, tileAABB.position.z])
+#			print("Size w/h: %f/%f" % [tileAABB.size.x, tileAABB.size.z])
 			var next_tile_x = getTilexyz(tile.TileX + 1, tile.TileY, tile.Zoom)
 			var next_tile_y = getTilexyz(tile.TileX, tile.TileY + 1, tile.Zoom)
 			if(next_tile_x != null):
@@ -189,6 +188,8 @@ func ArrangeTilesInGrid():
 				next_tile_y.translation.x = tile.translation.x
 				next_tile_y.translation.y = tile.translation.y
 				next_tile_y.translation.z = tile.translation.z + tileAABB.size.z
+			# Check if we have contiguous tiles, then generate junction meshes
+#			tile.ModifyArea(next_tile_x, next_tile_y)
 
 func getTilexyz(_x, _y, _z):
 	var terrain = find_node("terrain")
