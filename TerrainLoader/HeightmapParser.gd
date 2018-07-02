@@ -360,54 +360,54 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 					txr_b2r2 = txtr_sbs_img.get_pixel(x + 2 - x_limiter, y + 2 - y_limiter)
 					
 				arr_vtx.append(Vector3((x+1 - half_size) * dist_proportion_b, sq_heights[1][1] * dist * altitude_multiplier, (y+1 - half_size) * dist_proportion_b))
-				arr_uvs.append(Vector2(float(x+1)/float(width), float(y+1)/float(heigth)))
+				arr_uvs.append(Vector2(float(x+1)/float(width+1), float(y+1)/float(heigth+1)))
 				arr_vtx.append(Vector3((x - half_size) * dist_proportion_t, sq_heights[0][0] * dist * altitude_multiplier, (y - half_size) * dist_proportion_t))
-				arr_uvs.append(Vector2(float(x)/float(width), float(y)/float(heigth)))
+				arr_uvs.append(Vector2(float(x)/float(width+1), float(y)/float(heigth+1)))
 				if(color_vertices):
 					arr_cols.append(txr_br)
 					arr_cols.append(txr_tl)
 				
 				if(sq_heights[0][0]-sq_heights[1][0] != sq_heights[1][0]-sq_heights[2][0]):
 					arr_vtx.append(Vector3((x+1 - half_size) * dist_proportion_t, sq_heights[1][0] * dist * altitude_multiplier, (y - half_size) * dist_proportion_t))
-					arr_uvs.append(Vector2(float(x+1)/float(width), float(y)/float(heigth)))
+					arr_uvs.append(Vector2(float(x+1)/float(width+1), float(y)/float(heigth+1)))
 					if(color_vertices):
 						arr_cols.append(txr_tr)
 						
 				arr_vtx.append(Vector3((x+2 - half_size) * dist_proportion_t, sq_heights[2][0] * dist * altitude_multiplier, (y - half_size) * dist_proportion_t))
-				arr_uvs.append(Vector2(float(x+2)/float(width), float(y)/float(heigth)))
+				arr_uvs.append(Vector2(float(x+2)/float(width+1), float(y)/float(heigth+1)))
 				if(color_vertices):
 					arr_cols.append(txr_tr2)
 					
 				if(sq_heights[2][0]-sq_heights[2][1] != sq_heights[2][1]-sq_heights[2][2]):
 					arr_vtx.append(Vector3((x+2 - half_size) * dist_proportion_b, sq_heights[2][1] * dist * altitude_multiplier, (y+1 - half_size) * dist_proportion_b))
-					arr_uvs.append(Vector2(float(x+2)/float(width), float(y+1)/float(heigth)))
+					arr_uvs.append(Vector2(float(x+2)/float(width+1), float(y+1)/float(heigth+1)))
 					if(color_vertices):
 						arr_cols.append(txr_br2)
 						
 				arr_vtx.append(Vector3((x+2 - half_size) * dist_proportion_b2, sq_heights[2][2] * dist * altitude_multiplier, (y+2 - half_size) * dist_proportion_b2))
-				arr_uvs.append(Vector2(float(x+2)/float(width), float(y+2)/float(heigth)))
+				arr_uvs.append(Vector2(float(x+2)/float(width+1), float(y+2)/float(heigth+1)))
 				if(color_vertices):
 					arr_cols.append(txr_b2r2)
 					
 				if(sq_heights[2][2]-sq_heights[1][2] != sq_heights[1][2]-sq_heights[0][2]):
 					arr_vtx.append(Vector3((x+1 - half_size) * dist_proportion_b2, sq_heights[1][2] * dist * altitude_multiplier, (y+2 - half_size) * dist_proportion_b2))
-					arr_uvs.append(Vector2(float(x+1)/float(width), float(y+2)/float(heigth)))
+					arr_uvs.append(Vector2(float(x+1)/float(width+1), float(y+2)/float(heigth+1)))
 					if(color_vertices):
 						arr_cols.append(txr_b2r)
 						
 				arr_vtx.append(Vector3((x - half_size) * dist_proportion_b2, sq_heights[0][2] * dist * altitude_multiplier, (y+2 - half_size) * dist_proportion_b2))
-				arr_uvs.append(Vector2(float(x)/float(width), float(y+2)/float(heigth)))
+				arr_uvs.append(Vector2(float(x)/float(width+1), float(y+2)/float(heigth+1)))
 				if(color_vertices):
 					arr_cols.append(txr_b2l)
 					
 				if(sq_heights[0][2]-sq_heights[0][1] != sq_heights[0][1]-sq_heights[0][0]):
 					arr_vtx.append(Vector3((x - half_size) * dist_proportion_b, sq_heights[0][1] * dist * altitude_multiplier, (y+1 - half_size) * dist_proportion_b))
-					arr_uvs.append(Vector2(float(x)/float(width), float(y+1)/float(heigth)))
+					arr_uvs.append(Vector2(float(x)/float(width+1), float(y+1)/float(heigth+1)))
 					if(color_vertices):
 						arr_cols.append(txr_bl)
 						
 				arr_vtx.append(Vector3((x - half_size) * dist_proportion_t, sq_heights[0][0] * dist * altitude_multiplier, (y - half_size) * dist_proportion_t))
-				arr_uvs.append(Vector2(float(x)/float(width), float(y)/float(heigth)))
+				arr_uvs.append(Vector2(float(x)/float(width+1), float(y)/float(heigth+1)))
 				if(color_vertices):
 					arr_cols.append(txr_tl)
 				

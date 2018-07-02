@@ -16,6 +16,7 @@ export(String, FILE, "*.png, *.jpg, *.jpeg") var TerrainHeightMapPath setget _se
 export(String, FILE, "*.png, *.jpg, *.jpeg") var TerrainTexturePath setget _setMapTexture
 export(String, FILE, "*.tres") var MeshPath
 export(Mesh) var ShapeMesh
+export(AABB) var tileAABB setget , _getTileAABB
 export(ConcavePolygonShape) var Coll
 export(Image) var TerrainImage = Image.new()
 export(Image) var TerrainTextureImage = Image.new()
@@ -69,6 +70,8 @@ func _FixSubset(_subsVal):
 		_subsVal = NumberOfSections
 	return _subsVal
 
+func _getTileAABB():
+	return $TerrainMesh.get_aabb()
 
 func _ready():
 	SetMapShapeAndCollision()

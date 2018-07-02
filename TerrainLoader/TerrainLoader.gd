@@ -174,22 +174,16 @@ func generate_terrain_meshes():
 func ArrangeTilesInGrid():
 	var terrain = find_node("terrain")
 	if(terrain != null):
+		var first_tile = null
 		for tile in terrain.get_children():
-			var tileAABB = tile.get_node("TerrainMesh").get_aabb()
-#			print("Size x%f/y%f/z%f" % [tileAABB.position.x, tileAABB.position.y, tileAABB.position.z])
-#			print("Size w/h: %f/%f" % [tileAABB.size.x, tileAABB.size.z])
-			var next_tile_x = getTilexyz(tile.TileX + 1, tile.TileY, tile.Zoom)
-			var next_tile_y = getTilexyz(tile.TileX, tile.TileY + 1, tile.Zoom)
-			if(next_tile_x != null):
-				next_tile_x.translation.x = tile.translation.x + tileAABB.size.x
-				next_tile_x.translation.y = tile.translation.y
-				next_tile_x.translation.z = tile.translation.z
-			if(next_tile_y != null):
-				next_tile_y.translation.x = tile.translation.x
-				next_tile_y.translation.y = tile.translation.y
-				next_tile_y.translation.z = tile.translation.z + tileAABB.size.z
-			# Check if we have contiguous tiles, then generate junction meshes
-#			tile.ModifyArea(next_tile_x, next_tile_y)
+			if(first_tile == null):
+				first_tile = tile
+			else:
+				var dif_x = tile.TileX - first_tile.TileX
+				var dif_y =tile.TileY - first_tile.TileY
+				tile.translation.x = first_tile.translation.x + (first_tile.tileAABB.size.x * dif_x)
+				tile.translation.y = first_tile.translation.y
+				tile.translation.z = first_tile.translation.z + (first_tile.tileAABB.size.z * dif_y)
 
 func getTilexyz(_x, _y, _z):
 	var terrain = find_node("terrain")
