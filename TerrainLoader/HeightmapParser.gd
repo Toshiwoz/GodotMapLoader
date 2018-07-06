@@ -262,11 +262,12 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 	if(!_hm_img.is_empty() && !_txtr_img.is_empty()):
 		var surf_tool =  sth.new()#SurfaceTool.new()
 		var startt = float(OS.get_ticks_msec())
-		var hm_sbs_img = GetImageSubset(_hm_img, _divideinto, _subset, Vector2(lastvalx, lastvaly))
-		var txtr_sbs_img = GetImageSubset(_txtr_img, _divideinto, _subset, Vector2(lastvalx, lastvaly))
-		if(_divideinto == 1):
-			hm_sbs_img = _hm_img
-			txtr_sbs_img = _txtr_img
+		var hm_sbs_img = _hm_img
+		var txtr_sbs_img = _txtr_img
+		if(_divideinto > 1):
+			hm_sbs_img = GetImageSubset(_hm_img, _divideinto, _subset, Vector2(lastvalx, lastvaly))
+			txtr_sbs_img = GetImageSubset(_txtr_img, _divideinto, _subset, Vector2(lastvalx, lastvaly))
+		
 		var max_min_h = GetMaxMinHight(hm_sbs_img)
 		hm_sbs_img.lock()
 		txtr_sbs_img.lock()
@@ -297,6 +298,7 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		# Height multiplier is used to enhace altitudes,
 		# a value of 1 maintain real altitudes
 		var altitude_multiplier =  float(height_multiplier * dist / pxl_mtrs_t)
+		var height_scale = altitude_multiplier * dist
 		
 		var txr_tl = Color()
 		var txr_tr = Color()
@@ -315,10 +317,7 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		surf_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
 		surf_tool.add_smooth_group(true)
 #		surf_tool.add_color(Color(1,1,1))
-		var maxpxls = {x=0, y=0}
 		for y in rangeY:
-			if(maxpxls.y < y):
-				maxpxls.y = y
 			if(heigth-y <= 2):
 				y_limiter = 1
 			x_limiter = 0
@@ -330,17 +329,12 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 				pxl_mtrs_t = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, float(_tiley) + float(y)/float(heigth), Zoom)
 				pxl_mtrs_b = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, float(_tiley) + float(y+1)/float(heigth), Zoom)
 				pxl_mtrs_b2 = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, float(_tiley) + float(y+2)/float(heigth), Zoom)
-			else:
-				pxl_mtrs_t = pxl_mtrs_max
-				pxl_mtrs_b = pxl_mtrs_max
-				pxl_mtrs_b2 = pxl_mtrs_max
+
 			dist_proportion_t = dist * pxl_mtrs_t / pxl_mtrs_max
 			dist_proportion_b = dist * pxl_mtrs_b / pxl_mtrs_max
 			dist_proportion_b2 = dist * pxl_mtrs_b2 / pxl_mtrs_max
 #			print("For y=%f Dist T: %f, B: %f, B2: %f" % [y, dist_proportion_t, dist_proportion_b, dist_proportion_b2])
 			for x in rangeX:
-				if(maxpxls.x < x):
-					maxpxls.x = x
 				if(width-x <= 2):
 					x_limiter = 1
 				arr_vtx.resize(0)
@@ -359,61 +353,60 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 					txr_br2 = txtr_sbs_img.get_pixel(x + 1, y + 2 - y_limiter)
 					txr_b2r2 = txtr_sbs_img.get_pixel(x + 2 - x_limiter, y + 2 - y_limiter)
 					
-				arr_vtx.append(Vector3((x+1 - half_size) * dist_proportion_b, sq_heights[1][1] * dist * altitude_multiplier, (y+1 - half_size) * dist_proportion_b))
+				arr_vtx.append(Vector3((x+1 - half_size) * dist_proportion_b, sq_heights[1][1] * height_scale, (y+1 - half_size) * dist_proportion_b))
 				arr_uvs.append(Vector2(float(x+1)/float(width+1), float(y+1)/float(heigth+1)))
-				arr_vtx.append(Vector3((x - half_size) * dist_proportion_t, sq_heights[0][0] * dist * altitude_multiplier, (y - half_size) * dist_proportion_t))
+				arr_vtx.append(Vector3((x - half_size) * dist_proportion_t, sq_heights[0][0] * height_scale, (y - half_size) * dist_proportion_t))
 				arr_uvs.append(Vector2(float(x)/float(width+1), float(y)/float(heigth+1)))
 				if(color_vertices):
 					arr_cols.append(txr_br)
 					arr_cols.append(txr_tl)
 				
 				if(sq_heights[0][0]-sq_heights[1][0] != sq_heights[1][0]-sq_heights[2][0]):
-					arr_vtx.append(Vector3((x+1 - half_size) * dist_proportion_t, sq_heights[1][0] * dist * altitude_multiplier, (y - half_size) * dist_proportion_t))
+					arr_vtx.append(Vector3((x+1 - half_size) * dist_proportion_t, sq_heights[1][0] * height_scale, (y - half_size) * dist_proportion_t))
 					arr_uvs.append(Vector2(float(x+1)/float(width+1), float(y)/float(heigth+1)))
 					if(color_vertices):
 						arr_cols.append(txr_tr)
 						
-				arr_vtx.append(Vector3((x+2 - half_size) * dist_proportion_t, sq_heights[2][0] * dist * altitude_multiplier, (y - half_size) * dist_proportion_t))
+				arr_vtx.append(Vector3((x+2 - half_size) * dist_proportion_t, sq_heights[2][0] * height_scale, (y - half_size) * dist_proportion_t))
 				arr_uvs.append(Vector2(float(x+2)/float(width+1), float(y)/float(heigth+1)))
 				if(color_vertices):
 					arr_cols.append(txr_tr2)
 					
 				if(sq_heights[2][0]-sq_heights[2][1] != sq_heights[2][1]-sq_heights[2][2]):
-					arr_vtx.append(Vector3((x+2 - half_size) * dist_proportion_b, sq_heights[2][1] * dist * altitude_multiplier, (y+1 - half_size) * dist_proportion_b))
+					arr_vtx.append(Vector3((x+2 - half_size) * dist_proportion_b, sq_heights[2][1] * height_scale, (y+1 - half_size) * dist_proportion_b))
 					arr_uvs.append(Vector2(float(x+2)/float(width+1), float(y+1)/float(heigth+1)))
 					if(color_vertices):
 						arr_cols.append(txr_br2)
 						
-				arr_vtx.append(Vector3((x+2 - half_size) * dist_proportion_b2, sq_heights[2][2] * dist * altitude_multiplier, (y+2 - half_size) * dist_proportion_b2))
+				arr_vtx.append(Vector3((x+2 - half_size) * dist_proportion_b2, sq_heights[2][2] * height_scale, (y+2 - half_size) * dist_proportion_b2))
 				arr_uvs.append(Vector2(float(x+2)/float(width+1), float(y+2)/float(heigth+1)))
 				if(color_vertices):
 					arr_cols.append(txr_b2r2)
 					
 				if(sq_heights[2][2]-sq_heights[1][2] != sq_heights[1][2]-sq_heights[0][2]):
-					arr_vtx.append(Vector3((x+1 - half_size) * dist_proportion_b2, sq_heights[1][2] * dist * altitude_multiplier, (y+2 - half_size) * dist_proportion_b2))
+					arr_vtx.append(Vector3((x+1 - half_size) * dist_proportion_b2, sq_heights[1][2] * height_scale, (y+2 - half_size) * dist_proportion_b2))
 					arr_uvs.append(Vector2(float(x+1)/float(width+1), float(y+2)/float(heigth+1)))
 					if(color_vertices):
 						arr_cols.append(txr_b2r)
 						
-				arr_vtx.append(Vector3((x - half_size) * dist_proportion_b2, sq_heights[0][2] * dist * altitude_multiplier, (y+2 - half_size) * dist_proportion_b2))
+				arr_vtx.append(Vector3((x - half_size) * dist_proportion_b2, sq_heights[0][2] * height_scale, (y+2 - half_size) * dist_proportion_b2))
 				arr_uvs.append(Vector2(float(x)/float(width+1), float(y+2)/float(heigth+1)))
 				if(color_vertices):
 					arr_cols.append(txr_b2l)
 					
 				if(sq_heights[0][2]-sq_heights[0][1] != sq_heights[0][1]-sq_heights[0][0]):
-					arr_vtx.append(Vector3((x - half_size) * dist_proportion_b, sq_heights[0][1] * dist * altitude_multiplier, (y+1 - half_size) * dist_proportion_b))
+					arr_vtx.append(Vector3((x - half_size) * dist_proportion_b, sq_heights[0][1] * height_scale, (y+1 - half_size) * dist_proportion_b))
 					arr_uvs.append(Vector2(float(x)/float(width+1), float(y+1)/float(heigth+1)))
 					if(color_vertices):
 						arr_cols.append(txr_bl)
 						
-				arr_vtx.append(Vector3((x - half_size) * dist_proportion_t, sq_heights[0][0] * dist * altitude_multiplier, (y - half_size) * dist_proportion_t))
+				arr_vtx.append(Vector3((x - half_size) * dist_proportion_t, sq_heights[0][0] * height_scale, (y - half_size) * dist_proportion_t))
 				arr_uvs.append(Vector2(float(x)/float(width+1), float(y)/float(heigth+1)))
 				if(color_vertices):
 					arr_cols.append(txr_tl)
 				
 				surf_tool.add_rectangle(arr_vtx, arr_uvs, arr_cols, false, true)
 		
-		print(maxpxls)
 		hm_sbs_img.unlock()
 		txtr_sbs_img.unlock()
 		surf_tool.index()
