@@ -299,6 +299,7 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		# a value of 1 maintain real altitudes
 		var altitude_multiplier =  float(height_multiplier * dist / pxl_mtrs_t)
 		var height_scale = altitude_multiplier * dist
+		var sq_heights = [[0,1,2],[0,1,2],[0,1,2]]
 		
 		var txr_tl = Color()
 		var txr_tr = Color()
@@ -340,7 +341,7 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 				arr_vtx.resize(0)
 				arr_uvs.resize(0)
 				arr_cols.resize(0)
-				var sq_heights = getSquareHeights(hm_sbs_img, x, y, x_limiter, y_limiter, 0)
+				sq_heights = getSquareHeights(hm_sbs_img, x, y, x_limiter, y_limiter, 0)
 					
 				if(color_vertices):
 					txr_tl = txtr_sbs_img.get_pixel(x, y)
@@ -469,6 +470,7 @@ func CreateMeshFromImage_sph(_hm_img = Image.new(), _txtr_img = Image.new(), tot
 		var half_size = size /2.0
 		
 		var radius_factor = 5
+		var sq_heights = [[0,1,2],[0,1,2],[0,1,2]]
 		
 		var txr_tl = Color()
 		var txr_tr = Color()
@@ -479,15 +481,6 @@ func CreateMeshFromImage_sph(_hm_img = Image.new(), _txtr_img = Image.new(), tot
 		var txr_b2r = Color()
 		var txr_br2 = Color()
 		var txr_b2r2 = Color()
-		var alt_tl = float(0)
-		var alt_tr = float(0)
-		var alt_tr2 = float(0)
-		var alt_bl = float(0)
-		var alt_b2l = float(0)
-		var alt_br = float(0)
-		var alt_b2r = float(0)
-		var alt_br2 = float(0)
-		var alt_b2r2 = float(0)
 		
 		var arr_vtx = PoolVector3Array()
 		var arr_uvs = PoolVector2Array()
@@ -515,26 +508,7 @@ func CreateMeshFromImage_sph(_hm_img = Image.new(), _txtr_img = Image.new(), tot
 				arr_vtx.resize(0)
 				arr_uvs.resize(0)
 				arr_cols.resize(0)
-				if(_remove_offset):
-					alt_tl = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y)) - max_min_h.minh
-					alt_tr = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y)) - max_min_h.minh
-					alt_tr2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2 - x_limiter, y)) - max_min_h.minh
-					alt_bl = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y + 1)) - max_min_h.minh
-					alt_b2l = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y + 2 - y_limiter)) - max_min_h.minh
-					alt_br = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y + 1)) - max_min_h.minh
-					alt_b2r = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y + 2 - y_limiter)) - max_min_h.minh
-					alt_br2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2 - x_limiter, y + 1)) - max_min_h.minh
-					alt_b2r2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2 - x_limiter, y + 2 - y_limiter)) - max_min_h.minh
-				else:
-					alt_tl = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y)) 
-					alt_tr = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y))
-					alt_tr2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2 - x_limiter, y))
-					alt_bl = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y + 1))
-					alt_b2l = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y + 2 - y_limiter))
-					alt_br = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y + 1))
-					alt_b2r = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y + 2 - y_limiter))
-					alt_br2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2 - x_limiter, y + 1))
-					alt_b2r2 = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2 - x_limiter, y + 2 - y_limiter))
+				sq_heights = getSquareHeights(hm_sbs_img, x, y, x_limiter, y_limiter, 0)
 					
 				if(color_vertices):
 					txr_tl = txtr_sbs_img.get_pixel(x, y)
@@ -547,66 +521,66 @@ func CreateMeshFromImage_sph(_hm_img = Image.new(), _txtr_img = Image.new(), tot
 					txr_br2 = txtr_sbs_img.get_pixel(x + 1, y + 2 - y_limiter)
 					txr_b2r2 = txtr_sbs_img.get_pixel(x + 2 - x_limiter, y + 2 - y_limiter)
 				
-				ll = smf.tile_on_sphere_q2((alt_br*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x+1)/float(width), float(y+1)/float(heigth), Zoom)
+				ll = smf.tile_on_sphere_q2((sq_heights[1][1]*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x+1)/float(width+1), float(y+1)/float(heigth+1), Zoom)
 				arr_vtx.append(ll)
-				arr_uvs.append(Vector2(float(x+1)/float(width), float(y+1)/float(heigth)))
+				arr_uvs.append(Vector2(float(x+1)/float(width+1), float(y+1)/float(heigth+1)))
 				
-				ll = smf.tile_on_sphere_q2((alt_tl*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x)/float(width), float(y)/float(heigth), Zoom)
+				ll = smf.tile_on_sphere_q2((sq_heights[0][0]*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x)/float(width+1), float(y)/float(heigth+1), Zoom)
 				arr_vtx.append(ll)
-				arr_uvs.append(Vector2(float(x)/float(width), float(y*dist_proportion_t)/float(heigth)))
+				arr_uvs.append(Vector2(float(x)/float(width+1), float(y)/float(heigth+1)))
 				if(color_vertices):
 					arr_cols.append(txr_br)
 					arr_cols.append(txr_tl)
 				
 				if(true):
-					ll = smf.tile_on_sphere_q2((alt_tr*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x+1)/float(width), float(y)/float(heigth), Zoom)
+					ll = smf.tile_on_sphere_q2((sq_heights[1][0]*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x+1)/float(width+1), float(y)/float(heigth+1), Zoom)
 					arr_vtx.append(ll)
-					arr_uvs.append(Vector2(float(x+1)/float(width), float(y*dist_proportion_t)/float(heigth)))
+					arr_uvs.append(Vector2(float(x+1)/float(width+1), float(y)/float(heigth+1)))
 					if(color_vertices):
 						arr_cols.append(txr_tr)
 						
-				ll = smf.tile_on_sphere_q2((alt_tr2*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x+2)/float(width), float(y)/float(heigth), Zoom)
+				ll = smf.tile_on_sphere_q2((sq_heights[2][0]*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x+2)/float(width+1), float(y)/float(heigth+1), Zoom)
 				arr_vtx.append(ll)
-				arr_uvs.append(Vector2(float(x+2)/float(width), float(y*dist_proportion_t)/float(heigth)))
+				arr_uvs.append(Vector2(float(x+2)/float(width+1), float(y)/float(heigth+1)))
 				if(color_vertices):
 					arr_cols.append(txr_tr2)
 					
 				if(true):
-					ll = smf.tile_on_sphere_q2((alt_br2*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x+2)/float(width), float(y+1)/float(heigth), Zoom)
+					ll = smf.tile_on_sphere_q2((sq_heights[1][2]*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x+2)/float(width+1), float(y+1)/float(heigth+1), Zoom)
 					arr_vtx.append(ll)
-					arr_uvs.append(Vector2(float(x+2)/float(width), float((y+1)*dist_proportion_b)/float(heigth)))
+					arr_uvs.append(Vector2(float(x+2)/float(width+1), float(y+1)/float(heigth+1)))
 					if(color_vertices):
 						arr_cols.append(txr_br2)
 						
-				ll = smf.tile_on_sphere_q2((alt_b2r2*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x+2)/float(width), float(y+2)/float(heigth), Zoom)
+				ll = smf.tile_on_sphere_q2((sq_heights[2][2]*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x+2)/float(width+1), float(y+2)/float(heigth+1), Zoom)
 				arr_vtx.append(ll)
-				arr_uvs.append(Vector2(float(x+2)/float(width), float((y+2)*dist_proportion_b2)/float(heigth)))
+				arr_uvs.append(Vector2(float(x+2)/float(width+1), float(y+2)/float(heigth+1)))
 				if(color_vertices):
 					arr_cols.append(txr_b2r2)
 					
 				if(true):
-					ll = smf.tile_on_sphere_q2((alt_b2r*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x+1)/float(width), float(y+2)/float(heigth), Zoom)
+					ll = smf.tile_on_sphere_q2((sq_heights[1][2]*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x+1)/float(width+1), float(y+2)/float(heigth+1), Zoom)
 					arr_vtx.append(ll)
-					arr_uvs.append(Vector2(float(x+1)/float(width), float((y+2)*dist_proportion_b2)/float(heigth)))
+					arr_uvs.append(Vector2(float(x+1)/float(width+1), float(y+2)/float(heigth+1)))
 					if(color_vertices):
 						arr_cols.append(txr_b2r)
 				
-				ll = smf.tile_on_sphere_q2((alt_b2l*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x)/float(width), float(y+2)/float(heigth), Zoom)
+				ll = smf.tile_on_sphere_q2((sq_heights[0][2]*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x)/float(width+1), float(y+2)/float(heigth+1), Zoom)
 				arr_vtx.append(ll)
-				arr_uvs.append(Vector2(float(x)/float(width), float((y+2)*dist_proportion_b2)/float(heigth)))
+				arr_uvs.append(Vector2(float(x)/float(width+1), float(y+2)/float(heigth+1)))
 				if(color_vertices):
 					arr_cols.append(txr_b2l)
 					
 				if(true):
-					ll = smf.tile_on_sphere_q2((alt_bl*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x)/float(width), float(y+1)/float(heigth), Zoom)
+					ll = smf.tile_on_sphere_q2((sq_heights[0][1]*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x)/float(width+1), float(y+1)/float(heigth+1), Zoom)
 					arr_vtx.append(ll)
-					arr_uvs.append(Vector2(float(x)/float(width), float((y+1)*dist_proportion_b)/float(heigth)))
+					arr_uvs.append(Vector2(float(x)/float(width+1), float(y+1)/float(heigth+1)))
 					if(color_vertices):
 						arr_cols.append(txr_bl)
 									
-				ll = smf.tile_on_sphere_q2((alt_tl*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x)/float(width), float(y)/float(heigth), Zoom)
+				ll = smf.tile_on_sphere_q2((sq_heights[0][0]*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x)/float(width+1), float(y)/float(heigth+1), Zoom)
 				arr_vtx.append(ll)
-				arr_uvs.append(Vector2(float(x)/float(width), float(y*dist_proportion_t)/float(heigth)))
+				arr_uvs.append(Vector2(float(x)/float(width+1), float(y)/float(heigth+1)))
 				if(color_vertices):
 					arr_cols.append(txr_tl)
 				
