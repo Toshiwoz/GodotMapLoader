@@ -666,5 +666,3 @@ func AlterTerrainMesh(_mesh, _hmo, _hms, _side, _offset, _total_size, _height_mu
 				surf_tool.prepare_to_commit(SetMaterialTexture(_txtr_sbs_img))
 				_mesh = surf_tool.commit(_mesh)
 		return _mesh
-			
-			
