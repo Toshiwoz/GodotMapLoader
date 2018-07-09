@@ -9,6 +9,12 @@ var smf = preload("res://TerrainLoader/slippy_map_functions.gd")
 var sth = preload("res://TerrainLoader/surface_tool_helper.gd")
 var earth_circ = smf.radius_to_circ(smf.EARTH_RADIUS)
 
+var sq_heights = [[0,1,2],[0,1,2],[0,1,2]]
+# the heightmap image width and heigth
+var width = 0
+var heigth = 0
+var surf_tool =  sth.new()#SurfaceTool.new()
+
 func _init():
 	smf = preload("res://TerrainLoader/slippy_map_functions.gd")
 
@@ -65,39 +71,6 @@ func GetImageSubset(_image, _divideinto, _subset, _addpixel = Vector2(0, 0)):
 		var imgssize = Vector2(imgsswidth + _addpixel.x, imgssheight + _addpixel.y)
 		var imgsbst = _image.get_rect(Rect2(imgstart, imgssize))
 		return imgsbst
-
-func SetPixelVertices(_hmPicture = Image.new(), _xpxl = 0, _ypxl = 0, _meshdatatool = MeshDataTool.new(), _altitude_multiplier = 1):
-		var imgw = _hmPicture.get_width()
-		var vidx = 0
-		var rng = 6
-		if(_xpxl == imgw - 2):
-			rng = 3
-		elif(_xpxl > 0 && _xpxl < imgw):
-			rng = 4
-		vidx = ((imgw) * 4 + 11) * _ypxl + _xpxl * rng - rng
-		print(vidx)
-		var vtx = Vector3()
-		var pxl_tl = _hmPicture.get_pixel(_xpxl, _ypxl)
-		var pxl_tr = _hmPicture.get_pixel(_xpxl + 1, _ypxl)
-		var pxl_bl = _hmPicture.get_pixel(_xpxl, _ypxl + 1)
-		var pxl_br = _hmPicture.get_pixel(_xpxl + 1, _ypxl + 1)
-		for vx in range(rng):
-			vtx = _meshdatatool.get_vertex(vidx + vx)
-			match vx:
-				0:
-					vtx.y = smf.get_height_from_color(pxl_tl) * _altitude_multiplier
-				1:
-					vtx.y = smf.get_height_from_color(pxl_tr) * _altitude_multiplier
-				2:
-					vtx.y = smf.get_height_from_color(pxl_bl) * _altitude_multiplier
-				3:
-					vtx.y = smf.get_height_from_color(pxl_tr) * _altitude_multiplier
-				4:
-					vtx.y = smf.get_height_from_color(pxl_br) * _altitude_multiplier
-				5:
-					vtx.y = smf.get_height_from_color(pxl_bl) * _altitude_multiplier
-			_meshdatatool.set_vertex(vidx + vx, vtx)
-		return smf.get_height_from_color(pxl_tl)
 
 func SetMaterialTexture(_txtr_img):
 	var imgtxtr = ImageTexture.new()
@@ -236,19 +209,68 @@ func createMesh(ht, total_size = 0, height_multiplier = 1, Zoom = 1, _subset = 1
 		+ " Shift X/Z: " + var2str(x_shift) + "/" + var2str(z_shift)
 		+ " finished in %.2f seconds" % ((endtt - startt)/1000))
 		return mesh
+
+# Sets the heights array for the triangle fan to draw
+# the sq_heights is a global varialbe, in order to avoid allocating at every cycle
+func set_squareHeights(hm_sbs_img = Image.new(), x = 0, y = 0, x_limiter = 0, y_limiter = 0, _offset = 0):
+	sq_heights[0][0] = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y)) - _offset
+	sq_heights[1][0] = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y)) - _offset
+	sq_heights[2][0] = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2 - x_limiter, y)) - _offset
+	sq_heights[0][1] = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y + 1)) - _offset
+	sq_heights[0][2] = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y + 2 - y_limiter)) - _offset
+	sq_heights[1][1] = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y + 1)) - _offset
+	sq_heights[1][2] = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y + 2 - y_limiter)) - _offset
+	sq_heights[2][1] = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2 - x_limiter, y + 1)) - _offset
+	sq_heights[2][2] = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2 - x_limiter, y + 2 - y_limiter)) - _offset
+	
+func setTriangleFanVertex(_x, _y, _xr, _yr, _dist_proportion, _height_scale, _half_size, _sq_heights):
+	 return Vector3((_x+_xr - _half_size) * _dist_proportion, _sq_heights[_xr][_yr] * _height_scale, (_y+_yr - _half_size) * _dist_proportion)
+
+func set_vertex_uv(_x, _y, _xr, _yr):
+	return Vector2(float(_x+_xr)/float(width+1), float(_y+_yr)/float(heigth+1))
+	
+func generate_surface_from_array(_vertices, _uvs, _texture, _existing_mesh = null):
+	surf_tool.clear()
+	surf_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+	surf_tool.add_smooth_group(true)
+	for i in range(_vertices.size()):
+		surf_tool.add_rectangle(_vertices[i], _uvs[i])
+	surf_tool.prepare_to_commit(SetMaterialTexture(_texture))
+	return surf_tool.commit(_existing_mesh)
+	
+func set_mesh_fan(x, y, dist_proportion_b, height_scale, half_size, sq_heights):
+	surf_tool.add_fan_element(setTriangleFanVertex(x, y, 1, 1, dist_proportion_b, height_scale, half_size, sq_heights)
+							, set_vertex_uv(x, y, 1, 1))
+	surf_tool.add_fan_element(setTriangleFanVertex(x, y, 0, 0, dist_proportion_b, height_scale, half_size, sq_heights)
+							, set_vertex_uv(x, y, 0, 0))
+	
+	if(sq_heights[0][0]-sq_heights[1][0] != sq_heights[1][0]-sq_heights[2][0]):
+		surf_tool.add_fan_element(setTriangleFanVertex(x, y, 1, 0, dist_proportion_b, height_scale, half_size, sq_heights)
+								, set_vertex_uv(x, y, 1, 0))
+	
+	surf_tool.add_fan_element(setTriangleFanVertex(x, y, 2, 0, dist_proportion_b, height_scale, half_size, sq_heights)
+							, set_vertex_uv(x, y, 2, 0))
 		
-func getSquareHeights(hm_sbs_img = Image.new(), x = 0, y = 0, x_limiter = 0, y_limiter = 0, _offset = 0):
-	var altitudes = [[0,1,2],[0,1,2],[0,1,2]]
-	altitudes[0][0] = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y)) - _offset
-	altitudes[1][0] = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y)) - _offset
-	altitudes[2][0] = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2 - x_limiter, y)) - _offset
-	altitudes[0][1] = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y + 1)) - _offset
-	altitudes[0][2] = GetHeightFromPxl(hm_sbs_img.get_pixel(x, y + 2 - y_limiter)) - _offset
-	altitudes[1][1] = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y + 1)) - _offset
-	altitudes[1][2] = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 1, y + 2 - y_limiter)) - _offset
-	altitudes[2][1] = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2 - x_limiter, y + 1)) - _offset
-	altitudes[2][2] = GetHeightFromPxl(hm_sbs_img.get_pixel(x + 2 - x_limiter, y + 2 - y_limiter)) - _offset
-	return altitudes
+	if(sq_heights[2][0]-sq_heights[2][1] != sq_heights[2][1]-sq_heights[2][2]):
+		surf_tool.add_fan_element(setTriangleFanVertex(x, y, 2, 1, dist_proportion_b, height_scale, half_size, sq_heights)
+								, set_vertex_uv(x, y, 2, 1))
+	
+	surf_tool.add_fan_element(setTriangleFanVertex(x, y, 2, 2, dist_proportion_b, height_scale, half_size, sq_heights)
+							, set_vertex_uv(x, y, 2, 2))
+		
+	if(sq_heights[2][2]-sq_heights[1][2] != sq_heights[1][2]-sq_heights[0][2]):
+		surf_tool.add_fan_element(setTriangleFanVertex(x, y, 1, 2, dist_proportion_b, height_scale, half_size, sq_heights)
+								, set_vertex_uv(x, y, 1, 2))
+	
+	surf_tool.add_fan_element(setTriangleFanVertex(x, y, 0, 2, dist_proportion_b, height_scale, half_size, sq_heights)
+							, set_vertex_uv(x, y, 0, 2))
+		
+	if(sq_heights[0][2]-sq_heights[0][1] != sq_heights[0][1]-sq_heights[0][0]):
+		surf_tool.add_fan_element(setTriangleFanVertex(x, y, 0, 1, dist_proportion_b, height_scale, half_size, sq_heights)
+								, set_vertex_uv(x, y, 0, 1))
+	
+	surf_tool.add_fan_element(setTriangleFanVertex(x, y, 0, 0, dist_proportion_b, height_scale, half_size, sq_heights)
+							, set_vertex_uv(x, y, 0, 0))
 
 func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_size = 0, height_multiplier = 1, Zoom = 1, _tilex = 0.0, _tiley = 0.0, _subset = 1, _divideinto = 4, _remove_offset = false, _mesh_path = null):
 	var color_vertices = false
@@ -260,7 +282,6 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 	if(coords["y"] == _divideinto):
 		lastvaly = -1
 	if(!_hm_img.is_empty() && !_txtr_img.is_empty()):
-		var surf_tool =  sth.new()#SurfaceTool.new()
 		var startt = float(OS.get_ticks_msec())
 		var hm_sbs_img = _hm_img
 		var txtr_sbs_img = _txtr_img
@@ -271,8 +292,8 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		var max_min_h = GetMaxMinHight(hm_sbs_img)
 		hm_sbs_img.lock()
 		txtr_sbs_img.lock()
-		var width = hm_sbs_img.get_width()
-		var heigth = hm_sbs_img.get_height()
+		width = hm_sbs_img.get_width()
+		heigth = hm_sbs_img.get_height()
 		var step_size = 2
 		var rangeX = range(0,width, step_size)
 		var rangeY = range(0,heigth, step_size)
@@ -299,7 +320,6 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		# a value of 1 maintain real altitudes
 		var altitude_multiplier =  float(height_multiplier * dist / pxl_mtrs_t)
 		var height_scale = altitude_multiplier * dist
-		var sq_heights = [[0,1,2],[0,1,2],[0,1,2]]
 		
 		var txr_tl = Color()
 		var txr_tr = Color()
@@ -311,10 +331,13 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		var txr_br2 = Color()
 		var txr_b2r2 = Color()
 		
-		var arr_vtx = PoolVector3Array()
-		var arr_uvs = PoolVector2Array()
-		var arr_cols = PoolColorArray()
-		
+		var _adj_dist = false
+		var side_x_vertices = []
+		var side_x_uvs = []
+		var side_y_vertices = []
+		var side_y_uvs = []
+		var side_xy_vertices = []
+		var side_xy_uvs = []
 		surf_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
 		surf_tool.add_smooth_group(true)
 #		surf_tool.add_color(Color(1,1,1))
@@ -325,23 +348,18 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 			# getting adjusted distances
 			# as it should change only on latitute change, 
 			# we adjust it here in the y loop
-			var _adj_dist = false;
 			if(_adj_dist):
 				pxl_mtrs_t = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, float(_tiley) + float(y)/float(heigth), Zoom)
 				pxl_mtrs_b = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, float(_tiley) + float(y+1)/float(heigth), Zoom)
 				pxl_mtrs_b2 = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, float(_tiley) + float(y+2)/float(heigth), Zoom)
-
-			dist_proportion_t = dist * pxl_mtrs_t / pxl_mtrs_max
-			dist_proportion_b = dist * pxl_mtrs_b / pxl_mtrs_max
-			dist_proportion_b2 = dist * pxl_mtrs_b2 / pxl_mtrs_max
-#			print("For y=%f Dist T: %f, B: %f, B2: %f" % [y, dist_proportion_t, dist_proportion_b, dist_proportion_b2])
+				dist_proportion_t = dist * pxl_mtrs_t / pxl_mtrs_max
+				dist_proportion_b = dist * pxl_mtrs_b / pxl_mtrs_max
+				dist_proportion_b2 = dist * pxl_mtrs_b2 / pxl_mtrs_max
+				
 			for x in rangeX:
 				if(width-x <= 2):
 					x_limiter = 1
-				arr_vtx.resize(0)
-				arr_uvs.resize(0)
-				arr_cols.resize(0)
-				sq_heights = getSquareHeights(hm_sbs_img, x, y, x_limiter, y_limiter, 0)
+				set_squareHeights(hm_sbs_img, x, y, x_limiter, y_limiter, 0)
 					
 				if(color_vertices):
 					txr_tl = txtr_sbs_img.get_pixel(x, y)
@@ -353,67 +371,36 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 					txr_b2r = txtr_sbs_img.get_pixel(x + 2 - x_limiter, y + 1)
 					txr_br2 = txtr_sbs_img.get_pixel(x + 1, y + 2 - y_limiter)
 					txr_b2r2 = txtr_sbs_img.get_pixel(x + 2 - x_limiter, y + 2 - y_limiter)
-					
-				arr_vtx.append(Vector3((x+1 - half_size) * dist_proportion_b, sq_heights[1][1] * height_scale, (y+1 - half_size) * dist_proportion_b))
-				arr_uvs.append(Vector2(float(x+1)/float(width+1), float(y+1)/float(heigth+1)))
-				arr_vtx.append(Vector3((x - half_size) * dist_proportion_t, sq_heights[0][0] * height_scale, (y - half_size) * dist_proportion_t))
-				arr_uvs.append(Vector2(float(x)/float(width+1), float(y)/float(heigth+1)))
-				if(color_vertices):
-					arr_cols.append(txr_br)
-					arr_cols.append(txr_tl)
 				
-				if(sq_heights[0][0]-sq_heights[1][0] != sq_heights[1][0]-sq_heights[2][0]):
-					arr_vtx.append(Vector3((x+1 - half_size) * dist_proportion_t, sq_heights[1][0] * height_scale, (y - half_size) * dist_proportion_t))
-					arr_uvs.append(Vector2(float(x+1)/float(width+1), float(y)/float(heigth+1)))
-					if(color_vertices):
-						arr_cols.append(txr_tr)
-						
-				arr_vtx.append(Vector3((x+2 - half_size) * dist_proportion_t, sq_heights[2][0] * height_scale, (y - half_size) * dist_proportion_t))
-				arr_uvs.append(Vector2(float(x+2)/float(width+1), float(y)/float(heigth+1)))
-				if(color_vertices):
-					arr_cols.append(txr_tr2)
-					
-				if(sq_heights[2][0]-sq_heights[2][1] != sq_heights[2][1]-sq_heights[2][2]):
-					arr_vtx.append(Vector3((x+2 - half_size) * dist_proportion_b, sq_heights[2][1] * height_scale, (y+1 - half_size) * dist_proportion_b))
-					arr_uvs.append(Vector2(float(x+2)/float(width+1), float(y+1)/float(heigth+1)))
-					if(color_vertices):
-						arr_cols.append(txr_br2)
-						
-				arr_vtx.append(Vector3((x+2 - half_size) * dist_proportion_b2, sq_heights[2][2] * height_scale, (y+2 - half_size) * dist_proportion_b2))
-				arr_uvs.append(Vector2(float(x+2)/float(width+1), float(y+2)/float(heigth+1)))
-				if(color_vertices):
-					arr_cols.append(txr_b2r2)
-					
-				if(sq_heights[2][2]-sq_heights[1][2] != sq_heights[1][2]-sq_heights[0][2]):
-					arr_vtx.append(Vector3((x+1 - half_size) * dist_proportion_b2, sq_heights[1][2] * height_scale, (y+2 - half_size) * dist_proportion_b2))
-					arr_uvs.append(Vector2(float(x+1)/float(width+1), float(y+2)/float(heigth+1)))
-					if(color_vertices):
-						arr_cols.append(txr_b2r)
-						
-				arr_vtx.append(Vector3((x - half_size) * dist_proportion_b2, sq_heights[0][2] * height_scale, (y+2 - half_size) * dist_proportion_b2))
-				arr_uvs.append(Vector2(float(x)/float(width+1), float(y+2)/float(heigth+1)))
-				if(color_vertices):
-					arr_cols.append(txr_b2l)
-					
-				if(sq_heights[0][2]-sq_heights[0][1] != sq_heights[0][1]-sq_heights[0][0]):
-					arr_vtx.append(Vector3((x - half_size) * dist_proportion_b, sq_heights[0][1] * height_scale, (y+1 - half_size) * dist_proportion_b))
-					arr_uvs.append(Vector2(float(x)/float(width+1), float(y+1)/float(heigth+1)))
-					if(color_vertices):
-						arr_cols.append(txr_bl)
-						
-				arr_vtx.append(Vector3((x - half_size) * dist_proportion_t, sq_heights[0][0] * height_scale, (y - half_size) * dist_proportion_t))
-				arr_uvs.append(Vector2(float(x)/float(width+1), float(y)/float(heigth+1)))
-				if(color_vertices):
-					arr_cols.append(txr_tl)
+				set_mesh_fan(x, y, dist_proportion_b, height_scale, half_size, sq_heights)
 				
-				surf_tool.add_rectangle(arr_vtx, arr_uvs, arr_cols, false, true)
+				if(x_limiter == 1 && y_limiter == 1):
+					side_xy_vertices.append(surf_tool.arr_vtx)
+					side_xy_uvs.append(surf_tool.arr_uvs)
+					surf_tool.reset_fan()
+				elif(x_limiter == 1):
+					side_x_vertices.append(surf_tool.arr_vtx)
+					side_x_uvs.append(surf_tool.arr_uvs)
+					surf_tool.reset_fan()
+				elif(y_limiter == 1):
+					side_y_vertices.append(surf_tool.arr_vtx)
+					side_y_uvs.append(surf_tool.arr_uvs)
+					surf_tool.reset_fan()
+				else:
+					surf_tool.commit_fan()
 		
 		hm_sbs_img.unlock()
 		txtr_sbs_img.unlock()
-		surf_tool.index()
-		surf_tool.generate_normals()
-		surf_tool.set_material(SetMaterialTexture(txtr_sbs_img))
+		surf_tool.prepare_to_commit(SetMaterialTexture(txtr_sbs_img))
 		var mesh = surf_tool.commit()
+		mesh.surface_set_name(mesh.get_surface_count()-1, "b")
+		mesh = generate_surface_from_array(side_x_vertices, side_x_uvs, txtr_sbs_img, mesh)
+		mesh.surface_set_name(mesh.get_surface_count()-1, "x")
+		mesh = generate_surface_from_array(side_y_vertices, side_y_uvs, txtr_sbs_img, mesh)
+		mesh.surface_set_name(mesh.get_surface_count()-1, "y")
+		mesh = generate_surface_from_array(side_xy_vertices, side_xy_uvs, txtr_sbs_img, mesh)
+		mesh.surface_set_name(mesh.get_surface_count()-1, "xy")
+		
 		var endtt = float(OS.get_ticks_msec())
 		print("Mesh generation"
 		+ " Tile " + var2str(_subset) + "/" + var2str(_divideinto * _divideinto)
@@ -470,7 +457,6 @@ func CreateMeshFromImage_sph(_hm_img = Image.new(), _txtr_img = Image.new(), tot
 		var half_size = size /2.0
 		
 		var radius_factor = 5
-		var sq_heights = [[0,1,2],[0,1,2],[0,1,2]]
 		
 		var txr_tl = Color()
 		var txr_tr = Color()
@@ -508,7 +494,7 @@ func CreateMeshFromImage_sph(_hm_img = Image.new(), _txtr_img = Image.new(), tot
 				arr_vtx.resize(0)
 				arr_uvs.resize(0)
 				arr_cols.resize(0)
-				sq_heights = getSquareHeights(hm_sbs_img, x, y, x_limiter, y_limiter, 0)
+				set_squareHeights(hm_sbs_img, x, y, x_limiter, y_limiter, 0)
 					
 				if(color_vertices):
 					txr_tl = txtr_sbs_img.get_pixel(x, y)
@@ -588,14 +574,7 @@ func CreateMeshFromImage_sph(_hm_img = Image.new(), _txtr_img = Image.new(), tot
 		
 		hm_sbs_img.unlock()
 		txtr_sbs_img.unlock()
-		surf_tool.generate_normals()
-		surf_tool.index()
-		
-		var imgtxtr = ImageTexture.new()
-		imgtxtr.create_from_image(txtr_sbs_img)
-		var mat = earth_mat.duplicate() #This way it clones the material for each instance
-		mat.albedo_texture = imgtxtr
-		surf_tool.set_material(mat)
+		surf_tool.prepare_to_commit(SetMaterialTexture(txtr_sbs_img))
 		var mesh = surf_tool.commit()
 		
 		var dist = float (size / width)
@@ -639,21 +618,53 @@ func GetSideVertices(_mesh = ArrayMesh.new(), _side = Vector2()):
 				side_vertices.append([v, current_vertex])
 				print([v, current_vertex])
 	return side_vertices
-	
-		
-func AlterTerrainMesh(_mesh = ArrayMesh.new(), _meshX = ArrayMesh.new(), _meshY = ArrayMesh.new()):
-	var mdt = MeshDataTool.new()
-	if(_mesh != null):
-		var error = mdt.create_from_surface(_mesh, 0)
-		var vor = GetSideVertices(_mesh, Vector2(1, 0))
-		if(_meshX != null):
-			var vx = GetSideVertices(_meshX, Vector2(-1, 0))
-			print(vor.size())
-			print(vx.size())
-	#		var current_vertex = Vector3()
-	#		for i in range(vor.size()):
-	#			current_vertex = mdt.get_vertex(vor[i].idx)
-	#			current_vertex.y = vx[i].vtx
-	#			mdt.set_vertex(current_vertex)
-	#		mdt.commit_to_surface(_mesh)
-	#	return _mesh
+
+func AlterTerrainMesh(_mesh, _hmo, _hms, _side, _offset, _total_size, _height_multiplier, _txtr_sbs_img, _tilex, _tiley, _zoom):
+	print("Altering terrain mesh...")
+	if(_mesh!= null && _hmo != null && _hms != null):
+		_hmo.lock()
+		_hms.lock()
+		var width = _hmo.get_width()
+		var heigth = _hmo.get_height()
+		var x_limiter = 0
+		var y_limiter = 0
+		var pxl_mtrs_max = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, _tiley, _zoom)
+		if(pxl_mtrs_max < smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, _tiley+1, _zoom)):
+			pxl_mtrs_max = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, _tiley+1, _zoom)
+		var size = float(heigth)
+		if(_total_size == null):
+			_total_size = 0
+		if(_total_size > 0):
+			size = _total_size
+		var half_size = size /2.0
+		var dist = float (size / width)
+		var step_size = 2
+		var altitude_multiplier =  float(_height_multiplier * dist / pxl_mtrs_max)
+		var height_scale = altitude_multiplier * dist
+		var rangeX = range(0,width, step_size)
+		var rangeY = range(0,heigth, step_size)
+		surf_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+		surf_tool.add_smooth_group(true)
+		if(_side == "x"):
+			for y in rangeY:
+				if(heigth-y <= 2):
+					y_limiter = 1
+				sq_heights[0][0] = GetHeightFromPxl(_hmo.get_pixel(width - 2, y)) - _offset
+				sq_heights[1][0] = GetHeightFromPxl(_hmo.get_pixel(width - 1, y)) - _offset
+				sq_heights[2][0] = GetHeightFromPxl(_hms.get_pixel(0, y)) - _offset
+				sq_heights[0][1] = GetHeightFromPxl(_hmo.get_pixel(width - 2, y + 1)) - _offset
+				sq_heights[0][2] = GetHeightFromPxl(_hmo.get_pixel(width - 2, y + 2 - y_limiter)) - _offset
+				sq_heights[1][1] = GetHeightFromPxl(_hmo.get_pixel(width - 1, y + 1)) - _offset
+				sq_heights[1][2] = GetHeightFromPxl(_hmo.get_pixel(width - 1, y + 2 - y_limiter)) - _offset
+				sq_heights[2][1] = GetHeightFromPxl(_hms.get_pixel(0, y + 1)) - _offset
+				sq_heights[2][2] = GetHeightFromPxl(_hms.get_pixel(0, y + 2 - y_limiter)) - _offset
+				set_mesh_fan(width - 1, y, dist, height_scale, half_size, sq_heights)
+				surf_tool.commit_fan()
+		for s in range(_mesh.get_surface_count()):
+			if(_mesh.surface_get_name(s) == _side):
+				_mesh.surface_remove(s)
+				surf_tool.prepare_to_commit(SetMaterialTexture(_txtr_sbs_img))
+				_mesh = surf_tool.commit(_mesh)
+		return _mesh
+			
+			

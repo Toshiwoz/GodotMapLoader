@@ -13,7 +13,7 @@ export(Vector3) onready var tilecoords setget _setTile
 export(float, 0.1, 50, 0.1) onready var HeighMultiplier
 export(int) var pxlx = 0 setget , _get_pxlx
 export(int) var pxly = 0 setget , _get_pxly
-export(bool) onready var ArrangeTiles = false setget _set_arrangetile
+export(bool) onready var ArrangeTiles setget _set_arrangetile
 
 var TerrainHeightMap
 var TerrainTexture
@@ -74,6 +74,8 @@ func _setCoords(_lon = 0, _lat = 0, _zoom = 1):
 		TerrainHeightMap = Image.new()
 		TerrainTexture = Image.new()
 		var tile = smf.latlon_to_tile_pxl(_lat, _lon, _zoom)
+		if(tilecoords == null):
+			tilecoords = Vector3()
 		tilecoords.x = tile.tilex
 		tilecoords.y = tile.tiley
 		tilecoords.z = _zoom
@@ -108,7 +110,7 @@ func _request_map(_tilex = 0, _tiley = 0, _zoom = 1, _isheightmap = true):
 			&& has_node("MapLoaderHeightMap")):
 			if(access_token.length() == 0):
 				print("Access token is not set")
-			else:				
+			else:
 				var map_type = "terrain-rgb"
 				var double_size = ""
 				if(!_isheightmap):
@@ -177,7 +179,7 @@ func generate_terrain_meshes():
 				terr_node.initialize_map(int(tilecoords.z), int(tilecoords.x), int(tilecoords.y), HeighMultiplier, subdivide, tile_number, TerrainHeightMap, TerrainTexture)
 #				ThreadML = Thread.new()
 #				ThreadML.start(terr_node, "SetMapShapeAndCollision", null)
-				terr_node.SetMapShapeAndCollision()				
+				terr_node.SetMapShapeAndCollision()
 	if(ArrangeTiles):
 		ArrangeTilesInGrid()
 
@@ -194,6 +196,7 @@ func ArrangeTilesInGrid():
 				tile.translation.x = first_tile.translation.x + (first_tile.tileAABB.size.x * dif_x)
 				tile.translation.y = first_tile.translation.y
 				tile.translation.z = first_tile.translation.z + (first_tile.tileAABB.size.z * dif_y)
+			tile.ModifyArea(getTilexyz(tile.TileX+1, tile.TileY, tile.Zoom), null)
 
 func getTilexyz(_x, _y, _z):
 	var terrain = find_node("terrain")
