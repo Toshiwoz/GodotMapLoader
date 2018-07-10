@@ -14,9 +14,12 @@ as possible, being this way ideal to load dinamically the terrain
 
 ## Try it yourself
 
-Download this repo, run it in your godot 3.0 version (I am currently using 3.0.4),
-create a scene with directional light, a camera, etc.
-Then drag in it the TerrainLoader scene (so an instance of it).
+Fisrt thing fisrt (after you downloaded the addon files in the "addon" folder, or added it from the Godot Asset Library) you have to activate the addon in the Project Settings page.
+
+![alt text](https://github.com/Toshiwoz/GodotMapLoader/blob/master/godot_map_loader_demo.gif "Demo usage")
+
+Create a scene with directional light, a camera, etc.
+Then add a TerrainLoader node.
 And then in the node's properties set latitude, longitude and zoom level (It's the Cordinates setting, or Tilecoords if you want to enter directly the tile X/Y/Z).
 You can load multiple tiles by just changing the coordinates,
 usually, once entered the first Lat/Lon/Zoom you may want to just change the tile,
