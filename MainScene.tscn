@@ -5,8 +5,7 @@
 [ext_resource path="res://addons/TerrainLoader/TerrainLoader/TerrainLoader.gd" type="Script" id=3]
 [ext_resource path="res://addons/TerrainLoader/terrain_loader.png" type="Texture" id=4]
 
-
-[node name="MainScene" type="Spatial" index="0"]
+[node name="MainScene" type="Spatial"]
 
 _sections_unfolded = [ "Pause" ]
 
@@ -115,6 +114,7 @@ HeighMultiplier = null
 pxlx = 0
 pxly = 0
 ArrangeTiles = null
+UseThreads = false
 
 [connection signal="pressed" from="Button" to="Button" method="_on_Button_pressed"]
 
