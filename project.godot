@@ -16,7 +16,7 @@ config/icon="res://icon.png"
 
 [editor_plugins]
 
-enabled=PoolStringArray( "godot-git-control.funabab" )
+enabled=PoolStringArray( "TerrainLoader", "godot-git-control.funabab" )
 
 [physics]
 

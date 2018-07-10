@@ -1,7 +1,9 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://assets/maujoe.camera_control/scripts/camera_control.gd" type="Script" id=1]
 [ext_resource path="res://Button.gd" type="Script" id=2]
+[ext_resource path="res://addons/TerrainLoader/TerrainLoader.gd" type="Script" id=3]
+[ext_resource path="res://addons/TerrainLoader/terrain_loader.png" type="Texture" id=4]
 
 [node name="MainScene" type="Spatial" index="0"]
 
@@ -98,6 +100,20 @@ flat = false
 align = 1
 script = ExtResource( 2 )
 _sections_unfolded = [ "Material" ]
+
+[node name="TerrainLoader" type="Spatial" parent="." index="3"]
+
+script = ExtResource( 3 )
+__meta__ = {
+"_editor_icon": ExtResource( 4 )
+}
+access_token = "wefwefwe"
+coordinates = Vector3( 0, 0, 1 )
+tilecoords = Vector3( 1, 1, 1 )
+HeighMultiplier = null
+pxlx = 0
+pxly = 0
+ArrangeTiles = null
 
 [connection signal="pressed" from="Button" to="Button" method="_on_Button_pressed"]
 
