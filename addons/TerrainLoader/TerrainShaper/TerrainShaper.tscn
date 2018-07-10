@@ -1,0 +1,60 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://addons/TerrainLoader/TerrainShaper/TerrainShaper.gd" type="Script" id=1]
+
+
+
+[sub_resource type="PlaneMesh" id=1]
+
+custom_aabb = AABB( 0, 0, 0, 0, 0, 0 )
+size = Vector2( 256, 256 )
+subdivide_width = 0
+subdivide_depth = 0
+
+[node name="TerrainShaper" type="StaticBody" index="0"]
+
+input_ray_pickable = true
+input_capture_on_drag = false
+collision_layer = 1
+collision_mask = 1
+friction = 1.0
+bounce = 0.0
+constant_linear_velocity = Vector3( 0, 0, 0 )
+constant_angular_velocity = Vector3( 0, 0, 0 )
+script = ExtResource( 1 )
+Zoom = 1
+TileX = 0
+TileY = 0
+Size = 0
+HeigthMultiplier = 1
+Subset = 1
+SubsetShift = false
+DivideInto = 4
+TerrainHeightMapPath = null
+TerrainTexturePath = null
+MeshPath = null
+ShapeMesh = null
+Coll = null
+
+[node name="TerrainCollision" type="CollisionShape" parent="." index="0"]
+
+shape = null
+disabled = false
+
+[node name="TerrainMesh" type="MeshInstance" parent="." index="1"]
+
+layers = 1
+material_override = null
+cast_shadow = 1
+extra_cull_margin = 0.0
+use_in_baked_light = false
+lod_min_distance = 0.0
+lod_min_hysteresis = 0.0
+lod_max_distance = 0.0
+lod_max_hysteresis = 0.0
+mesh = SubResource( 1 )
+skeleton = NodePath("..")
+material/0 = null
+_sections_unfolded = [ "Geometry", "LOD" ]
+
+
