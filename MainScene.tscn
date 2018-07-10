@@ -2,8 +2,9 @@
 
 [ext_resource path="res://assets/maujoe.camera_control/scripts/camera_control.gd" type="Script" id=1]
 [ext_resource path="res://Button.gd" type="Script" id=2]
-[ext_resource path="res://addons/TerrainLoader/TerrainLoader.gd" type="Script" id=3]
+[ext_resource path="res://addons/TerrainLoader/TerrainLoader/TerrainLoader.gd" type="Script" id=3]
 [ext_resource path="res://addons/TerrainLoader/terrain_loader.png" type="Texture" id=4]
+
 
 [node name="MainScene" type="Spatial" index="0"]
 
