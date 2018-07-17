@@ -1,11 +1,11 @@
 [gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://assets/maujoe.camera_control/scripts/camera_control.gd" type="Script" id=1]
-[ext_resource path="res://Button.gd" type="Script" id=2]
+[ext_resource path="res://Button_tl_cotopaxi.gd" type="Script" id=2]
 [ext_resource path="res://addons/TerrainLoader/TerrainLoader/TerrainLoader.gd" type="Script" id=3]
 [ext_resource path="res://addons/TerrainLoader/terrain_loader.png" type="Texture" id=4]
 
-[node name="MainScene" type="Spatial"]
+[node name="MainScene" type="Spatial" index="0"]
 
 _sections_unfolded = [ "Pause" ]
 
@@ -101,13 +101,40 @@ align = 1
 script = ExtResource( 2 )
 _sections_unfolded = [ "Material" ]
 
-[node name="TerrainLoader" type="Spatial" parent="." index="3"]
+[node name="Button_tl_cotopaxy" type="Button" parent="." index="3"]
+
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_left = 468.0
+margin_top = 25.0
+margin_right = 798.0
+margin_bottom = 134.0
+rect_pivot_offset = Vector2( 0, 0 )
+rect_clip_content = false
+focus_mode = 2
+mouse_filter = 0
+mouse_default_cursor_shape = 0
+size_flags_horizontal = 1
+size_flags_vertical = 1
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+group = null
+text = "Enter Himalaya"
+flat = false
+align = 1
+script = ExtResource( 2 )
+_sections_unfolded = [ "Material" ]
+
+[node name="TerrainLoader" type="Spatial" parent="." index="4"]
 
 script = ExtResource( 3 )
 __meta__ = {
 "_editor_icon": ExtResource( 4 )
 }
-access_token = "wefwefwe"
+access_token = "pk.eyJ1IjoiZGlnaXRhbGtpIiwiYSI6ImNqNXh1MDdibTA4bTMycnAweDBxYXBpYncifQ.daSatfva2eG-95QHWC9Mig"
 coordinates = Vector3( 0, 0, 1 )
 tilecoords = Vector3( 1, 1, 1 )
 HeighMultiplier = null
@@ -117,5 +144,7 @@ ArrangeTiles = null
 UseThreads = false
 
 [connection signal="pressed" from="Button" to="Button" method="_on_Button_pressed"]
+
+[connection signal="pressed" from="Button_tl_cotopaxy" to="Button_tl_cotopaxy" method="_on_Button_pressed"]
 
 

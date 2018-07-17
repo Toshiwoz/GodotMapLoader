@@ -1,8 +1,6 @@
 /.import/*
-
-
 /assets/*
-
 /*.import
-
 /*.tmp
+!/addons/TerrainLoader/*
+/addons/*
