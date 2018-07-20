@@ -7,7 +7,7 @@ Loads maps from MapBox and renders it in 3D
 This is still a work in progress, some features need improvement (and help is welcome).
 
 The module tries to represent that data as accurate as possible and being as fast
-as possible, being this way ideal to load dinamically the terrain
+as possible, being this way ideal to load dynamically the terrain
 (imagine flight simulator that can load terrain from anywhere in the world as you go).
 
 ## Try it yourself
