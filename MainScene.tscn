@@ -1,17 +1,22 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=6 format=2]
 
-[ext_resource path="res://assets/maujoe.camera_control/scripts/camera_control.gd" type="Script" id=1]
-[ext_resource path="res://Button_tl_cotopaxi.gd" type="Script" id=2]
-[ext_resource path="res://addons/TerrainLoader/TerrainLoader/TerrainLoader.gd" type="Script" id=3]
-[ext_resource path="res://addons/TerrainLoader/terrain_loader.png" type="Texture" id=4]
+[ext_resource path="res://MainScene.gd" type="Script" id=1]
+[ext_resource path="res://addons/TerrainLoader/tll.gd" type="Script" id=2]
+[ext_resource path="res://addons/TerrainLoader/terrain_loader.png" type="Texture" id=3]
+[ext_resource path="res://addons/TerrainLoader/Mapbox/PNG/mapbox-logo-white.png" type="Texture" id=4]
+
+[sub_resource type="ShortCut" id=1]
+
+_sections_unfolded = [ "Resource" ]
 
 [node name="MainScene" type="Spatial" index="0"]
 
+script = ExtResource( 1 )
 _sections_unfolded = [ "Pause" ]
 
 [node name="DirectionalLight" type="DirectionalLight" parent="." index="0"]
 
-transform = Transform( 1, 0, 0, 0, -0.988739, 0.14965, 0, -0.14965, -0.988739, 0, 9.28216, 0 )
+transform = Transform( 1, 0, 0, 0, 0.779283, 0.626672, 0, -0.626672, 0.779283, 0, 9.28216, 0 )
 layers = 1
 light_color = Color( 1, 1, 1, 1 )
 light_energy = 1.0
@@ -35,11 +40,11 @@ directional_shadow_normal_bias = 0.8
 directional_shadow_bias_split_scale = 0.25
 directional_shadow_depth_range = 0
 directional_shadow_max_distance = 200.0
-_sections_unfolded = [ "Shadow" ]
+_sections_unfolded = [ "Shadow", "Transform" ]
 
 [node name="Camera" type="Camera" parent="." index="1"]
 
-transform = Transform( 1, 0, 0, 0, 0.766044, 0.642788, 0, -0.642788, 0.766044, 0, 7, 30 )
+transform = Transform( -1, 6.18172e-008, -6.18172e-008, 0, 0.707107, 0.707107, 8.74228e-008, 0.707107, -0.707107, 128, 148.224, -326.703 )
 keep_aspect = 1
 cull_mask = 1048575
 environment = null
@@ -52,38 +57,17 @@ fov = 70.0
 size = 1.0
 near = 0.05
 far = 2048.0
-script = ExtResource( 1 )
 _sections_unfolded = [ "Transform" ]
-enabled = true
-mouse_mode = 2
-mouselook = true
-sensitivity = 0.5
-smoothness = 0.5
-privot = null
-distance = 500.0
-rotate_privot = false
-collisions = true
-yaw_limit = 360
-pitch_limit = 360
-movement = true
-speed = 1.0
-forward_action = "ui_up"
-backward_action = "ui_down"
-left_action = "ui_left"
-right_action = "ui_right"
-use_gui = true
-gui_action = "ui_cancel"
 
-[node name="Button" type="Button" parent="." index="2"]
+[node name="Button_himalaya" type="Button" parent="." index="2"]
 
-anchor_left = 0.0
+anchor_left = 1.0
 anchor_top = 0.0
-anchor_right = 0.0
+anchor_right = 1.0
 anchor_bottom = 0.0
-margin_left = 463.0
-margin_top = 219.0
-margin_right = 793.0
-margin_bottom = 328.0
+margin_left = -154.0
+margin_top = 50.0
+margin_bottom = 90.0
 rect_pivot_offset = Vector2( 0, 0 )
 rect_clip_content = false
 focus_mode = 2
@@ -98,19 +82,16 @@ group = null
 text = "Enter Himalaya"
 flat = false
 align = 1
-script = ExtResource( 2 )
 _sections_unfolded = [ "Material" ]
 
-[node name="Button_tl_cotopaxy" type="Button" parent="." index="3"]
+[node name="Button_cotopaxy" type="Button" parent="." index="3"]
 
-anchor_left = 0.0
+anchor_left = 1.0
 anchor_top = 0.0
-anchor_right = 0.0
+anchor_right = 1.0
 anchor_bottom = 0.0
-margin_left = 468.0
-margin_top = 25.0
-margin_right = 798.0
-margin_bottom = 134.0
+margin_left = -156.0
+margin_bottom = 40.0
 rect_pivot_offset = Vector2( 0, 0 )
 rect_clip_content = false
 focus_mode = 2
@@ -122,29 +103,125 @@ toggle_mode = false
 enabled_focus_mode = 2
 shortcut = null
 group = null
-text = "Enter Himalaya"
+text = "Enter Cotopaxi"
 flat = false
 align = 1
-script = ExtResource( 2 )
 _sections_unfolded = [ "Material" ]
 
 [node name="TerrainLoader" type="Spatial" parent="." index="4"]
 
-script = ExtResource( 3 )
+script = ExtResource( 2 )
 __meta__ = {
-"_editor_icon": ExtResource( 4 )
+"_editor_icon": ExtResource( 3 )
 }
 access_token = "pk.eyJ1IjoiZGlnaXRhbGtpIiwiYSI6ImNqNXh1MDdibTA4bTMycnAweDBxYXBpYncifQ.daSatfva2eG-95QHWC9Mig"
-coordinates = Vector3( 0, 0, 1 )
-tilecoords = Vector3( 1, 1, 1 )
-HeighMultiplier = null
-pxlx = 0
-pxly = 0
-ArrangeTiles = null
+coordinates = Vector3( 86.9238, 27.9944, 12 )
+tilecoords = Vector3( 3037, 1716, 12 )
+HeighMultiplier = 1
+pxlx = 1
+pxly = 1
+ArrangeTiles = true
 UseThreads = false
 
-[connection signal="pressed" from="Button" to="Button" method="_on_Button_pressed"]
+[node name="MapboxWatermark" type="TextureRect" parent="." index="5"]
 
-[connection signal="pressed" from="Button_tl_cotopaxy" to="Button_tl_cotopaxy" method="_on_Button_pressed"]
+modulate = Color( 1, 1, 1, 0.498039 )
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = -1004.0
+margin_top = 550.0
+margin_right = -884.0
+margin_bottom = -20.0
+rect_pivot_offset = Vector2( 0, 0 )
+rect_clip_content = true
+mouse_filter = 1
+mouse_default_cursor_shape = 0
+size_flags_horizontal = 1
+size_flags_vertical = 1
+texture = ExtResource( 4 )
+expand = true
+stretch_mode = 5
+_sections_unfolded = [ "Anchor", "Grow Direction", "Rect", "Size Flags", "Textures", "Visibility" ]
+
+[node name="MapboxLink" type="LinkButton" parent="." index="6"]
+
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 682.0
+margin_top = 570.0
+margin_right = -276.0
+margin_bottom = -20.0
+rect_pivot_offset = Vector2( 0, 0 )
+rect_clip_content = false
+mouse_filter = 0
+mouse_default_cursor_shape = 2
+size_flags_horizontal = 1
+size_flags_vertical = 1
+toggle_mode = false
+enabled_focus_mode = 0
+shortcut = SubResource( 1 )
+group = null
+text = "© Mapbox"
+underline = 1
+
+[node name="OpenStreetMapLink" type="LinkButton" parent="." index="7"]
+
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 762.0
+margin_top = 570.0
+margin_right = -146.0
+margin_bottom = -20.0
+rect_pivot_offset = Vector2( 0, 0 )
+rect_clip_content = false
+mouse_filter = 0
+mouse_default_cursor_shape = 2
+size_flags_horizontal = 1
+size_flags_vertical = 1
+toggle_mode = false
+enabled_focus_mode = 0
+shortcut = SubResource( 1 )
+group = null
+text = "© OpenStreetMap"
+underline = 1
+
+[node name="ImproveLink" type="LinkButton" parent="." index="8"]
+
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 892.0
+margin_top = 570.0
+margin_right = -16.0
+margin_bottom = -20.0
+rect_pivot_offset = Vector2( 0, 0 )
+rect_clip_content = false
+mouse_filter = 0
+mouse_default_cursor_shape = 2
+size_flags_horizontal = 1
+size_flags_vertical = 1
+toggle_mode = false
+enabled_focus_mode = 0
+shortcut = SubResource( 1 )
+group = null
+text = "Improve this map"
+underline = 1
+
+[connection signal="pressed" from="Button_himalaya" to="." method="_on_Button_himalaya_pressed"]
+
+[connection signal="pressed" from="Button_cotopaxy" to="." method="_on_Button_cotopaxy_pressed"]
+
+[connection signal="pressed" from="MapboxLink" to="." method="_on_MapboxLink_pressed"]
+
+[connection signal="pressed" from="OpenStreetMapLink" to="." method="_on_OpenStreetMapLink_pressed"]
+
+[connection signal="pressed" from="ImproveLink" to="." method="_on_ImproveLink_pressed"]
 
 

@@ -7,14 +7,14 @@ _sections_unfolded = [ "Transform" ]
 [node name="MapLoaderHeightMap" type="HTTPRequest" parent="." index="0"]
 
 download_file = ""
-use_threads = true
+use_threads = false
 body_size_limit = -1
 max_redirects = 8
 
 [node name="MapLoaderTexture" type="HTTPRequest" parent="." index="1"]
 
 download_file = ""
-use_threads = true
+use_threads = false
 body_size_limit = -1
 max_redirects = 8
 

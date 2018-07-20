@@ -184,9 +184,11 @@ func generate_terrain_meshes():
 				terr_node.set_owner(scene_root)
 				terr_node.SubsetShift = true
 				terr_node.initialize_map(int(tilecoords.z), int(tilecoords.x), int(tilecoords.y), HeighMultiplier, subdivide, tile_number, TerrainHeightMap, TerrainTexture)
-#				ThreadML = Thread.new()
-#				ThreadML.start(terr_node, "SetMapShapeAndCollision", null)
-				terr_node.SetMapShapeAndCollision()
+				if UseThreads:
+#					ThreadML = Thread.new()
+					ThreadML.start(terr_node, "SetMapShapeAndCollision", null)
+				else:
+					terr_node.SetMapShapeAndCollision()
 	if(ArrangeTiles):
 		ArrangeTilesInGrid()
 

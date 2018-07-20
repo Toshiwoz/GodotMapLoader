@@ -2,5 +2,5 @@
 /assets/*
 /*.import
 /*.tmp
-!/addons/TerrainLoader/*
+!/addons/TerrainLoader/**
 /addons/*

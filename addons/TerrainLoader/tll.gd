@@ -19,6 +19,8 @@ export(bool) onready var UseThreads
 
 var TerrainHeightMap
 var TerrainTexture
+
+var terrain
 var ThreadML = Thread.new()
 var tree = null
 var scene_root = null
@@ -45,6 +47,7 @@ func _ready():
 	MapLoaderTexture = tl.find_node("MapLoaderTexture")
 	MapLoaderHeightMap.connect("request_completed", self, "_on_MapLoaderHeightMap_request_completed")
 	MapLoaderTexture.connect("request_completed", self, "_on_MapLoaderTexture_request_completed")
+	terrain = find_node("terrain")
 
 func _get_pxlx():
 	return pxlx
@@ -176,15 +179,8 @@ func generate_terrain_meshes():
 	if(TerrainHeightMap != null && TerrainTexture != null):
 		if(TerrainHeightMap.get_size().length() > 0
 		&& TerrainTexture.get_size().length() > 0):
-			print("Adding Terrain tiles...")
-					
-			var terrain = find_node("terrain")
-			if(terrain == null):
-				terrain = Spatial.new()
-				terrain.name = "terrain"
-				self.add_child(terrain)
-				terrain.set_owner(scene_root)
-					
+			print("Adding Terrain tiles...")					
+			_setTerrainNode()					
 			for tile in terrain.get_children():
 				if(tile.Zoom == tilecoords.z && tile.TileX == tilecoords.x && tile.TileY == tilecoords.y):
 					print("replacing tile " + tile.name)
@@ -198,9 +194,13 @@ func generate_terrain_meshes():
 				terr_node.set_owner(scene_root)
 				terr_node.SubsetShift = true
 				terr_node.initialize_map(int(tilecoords.z), int(tilecoords.x), int(tilecoords.y), HeighMultiplier, subdivide, tile_number, TerrainHeightMap, TerrainTexture)
-#				ThreadML = Thread.new()
-#				ThreadML.start(terr_node, "SetMapShapeAndCollision", null)
-				terr_node.SetMapShapeAndCollision()
+				if UseThreads:
+#					ThreadML = Thread.new()
+					if ThreadML.is_active():
+						ThreadML.call_deferred("wait_to_finish")
+					ThreadML.start(terr_node, "SetMapShapeAndCollision", null)
+				else:
+					terr_node.SetMapShapeAndCollision()
 	if(ArrangeTiles):
 		ArrangeTilesInGrid()
 
@@ -218,6 +218,20 @@ func ArrangeTilesInGrid():
 				tile.translation.y = first_tile.translation.y
 				tile.translation.z = first_tile.translation.z + (first_tile.tileAABB.size.z * dif_y)
 			tile.ModifyArea(getTilexyz(tile.TileX+1, tile.TileY, tile.Zoom), getTilexyz(tile.TileX, tile.TileY+1, tile.Zoom))
+
+func _setTerrainNode():
+	terrain = find_node("terrain")
+	if(terrain == null):
+		terrain = Spatial.new()
+		terrain.name = "terrain"
+		self.add_child(terrain)
+		terrain.set_owner(scene_root)
+
+func deleteTiles():
+	_setTerrainNode()
+	for tile in terrain.get_children():
+		print("removing tile " + tile.name)
+		tile.free()
 
 func getTilexyz(_x, _y, _z):
 	var terrain = find_node("terrain")

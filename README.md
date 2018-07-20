@@ -4,9 +4,7 @@ Loads maps from MapBox and renders it in 3D
 ![alt text](https://github.com/Toshiwoz/GodotMapLoader/blob/master/himalaya_mountains_screenshot.png "Himalaya")
 
 
-This is still a work in progress, as it should be an addon for Godot game engine (3.0),
-but for now it is just a normal project that allows to load map data from MapBox
-and render that data into 3d meshes (no collision shape actually created).
+This is still a work in progress, some features need improvement (and help is welcome).
 
 The module tries to represent that data as accurate as possible and being as fast
 as possible, being this way ideal to load dinamically the terrain
@@ -16,7 +14,7 @@ as possible, being this way ideal to load dinamically the terrain
 
 Fisrt thing fisrt (after you downloaded the addon files in the "addon" folder, or added it from the Godot Asset Library) you have to activate the addon in the Project Settings page.
 
-![alt text](https://github.com/Toshiwoz/GodotMapLoader/blob/master/godot_map_loader_demo.gif "Demo usage")
+![In editor usage demo](https://github.com/Toshiwoz/GodotMapLoader/blob/master/godot_map_loader_demo.gif "Demo usage")
 
 Create a scene with directional light, a camera, etc.
 Then add a TerrainLoader node.
@@ -27,11 +25,20 @@ so that you have contiguous tiles.
 The "Arrange Tiles" checkbox will enable automatic alignment of the tiles,
 based on their tile position.
 
+## Mapbox Attribution
+As this mdule is using Mapbox services, you should follow the guidelines mentioned here:
+[How attribution works](https://www.mapbox.com/help/how-attribution-works/ "How attribution works"), if you plan to use the maps publicly.
+You can see an example in the main scene.
+
 ###Some coordinate you can use to test the script
 IGUAZU FALLS lat: -25.695277777778 lon: -54.436666666667
+
 FLORENCE - lat: 43.771388888889 lon: 11.254166666667
+
 COTOPAXI lat: -0.680556, lon: -78.437778
+
 MOUNT FUJI lat: 35.36 lon: 138.73
+
 HIMALAYA lat: 27.988056, lon: 86.925278
 
 ## TODOs
