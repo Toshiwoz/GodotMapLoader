@@ -13,7 +13,8 @@ var sq_heights = [[0,1,2],[0,1,2],[0,1,2]]
 # the heightmap image width and heigth
 var width = 0
 var heigth = 0
-var surf_tool =  sth.new()#SurfaceTool.new()
+var surf_tool =  sth.new()
+var max_min_height = null
 
 func _init():
 	smf = preload("res://addons/TerrainLoader/helpers/slippy_map_functions.gd")
@@ -289,7 +290,7 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 			hm_sbs_img = GetImageSubset(_hm_img, _divideinto, _subset, Vector2(lastvalx, lastvaly))
 			txtr_sbs_img = GetImageSubset(_txtr_img, _divideinto, _subset, Vector2(lastvalx, lastvaly))
 		
-		var max_min_h = GetMaxMinHight(hm_sbs_img)
+		max_min_height = GetMaxMinHight(hm_sbs_img)
 		hm_sbs_img.lock()
 		txtr_sbs_img.lock()
 		width = hm_sbs_img.get_width()
@@ -408,7 +409,7 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		+ " Size: " + var2str(size)
 		+ " Dist: " + var2str(dist)
 		+ " Meters/Pixel: " + var2str(pxl_mtrs_max)
-		+ " Min/Max Alt.: " + var2str(max_min_h.minh) + "/" + var2str(max_min_h.maxh)
+		+ " Min/Max Alt.: " + var2str(max_min_height.minh) + "/" + var2str(max_min_height.maxh)
 		+ " finished in %.2f seconds" % ((endtt - startt)/1000))
 		return mesh
 		

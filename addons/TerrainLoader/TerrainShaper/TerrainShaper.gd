@@ -18,6 +18,7 @@ export(String, FILE, "*.png, *.jpg, *.jpeg") var TerrainTexturePath setget _setM
 export(String, FILE, "*.tres") var MeshPath
 export(Mesh) var ShapeMesh
 export(AABB) var tileAABB setget , _getTileAABB
+export(float) var HeightOffset
 export(ConcavePolygonShape) var Coll
 export(Image) var TerrainImage = Image.new()
 export(Image) var TerrainTextureImage = Image.new()
@@ -108,10 +109,11 @@ func SetMapShapeAndCollision(params = null):
 #		$TerrainMesh.mesh = hmTool.createMesh(HeightMap, Size, HeigthMultiplier, Zoom, Subset, DivideInto, SubsetShift, MeshPath)
 
 		if(Zoom > 6):
-			$TerrainMesh.mesh = hmTool.createMeshFromImage(TerrainImage, TerrainTextureImage, Size, HeigthMultiplier, Zoom, TileX, TileY, Subset, DivideInto, false)
+			$TerrainMesh.mesh = hmTool.createMeshFromImage(TerrainImage, TerrainTextureImage, Size, HeigthMultiplier, Zoom, TileX, TileY, Subset, DivideInto, true)
 		else:
 			$TerrainMesh.mesh = hmTool.CreateMeshFromImage_sph(TerrainImage, TerrainTextureImage, Size, HeigthMultiplier, Zoom, TileX, TileY, Subset, DivideInto, false)
 		ShapeMesh = $TerrainMesh.mesh
+		HeightOffset = hmTool.max_min_height.minh
 		var pos = $TerrainMesh.get_aabb()
 		pos.size.y = 0
 		self.translation = -pos.position - pos.size/2
