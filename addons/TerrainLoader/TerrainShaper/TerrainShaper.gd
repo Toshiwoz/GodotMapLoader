@@ -137,9 +137,9 @@ func SetMapShapeAndCollision(params = null):
 
 func ModifyArea(_nextx, _nexty):
 	if(_nextx != null && ShapeMesh != null):
-		ShapeMesh = hmTool.AlterTerrainMesh(ShapeMesh, TerrainImage, _nextx.TerrainImage, null, 0, Size, HeigthMultiplier, TerrainTextureImage, TileX, TileY, Zoom)
+		ShapeMesh = hmTool.AlterTerrainMesh(ShapeMesh, TerrainImage, _nextx.TerrainImage, null, HeightOffset, Size, HeigthMultiplier, TerrainTextureImage, TileX, TileY, Zoom)
 	if(_nexty != null && ShapeMesh != null):
-		ShapeMesh = hmTool.AlterTerrainMesh(ShapeMesh, TerrainImage, null, _nexty.TerrainImage, 0, Size, HeigthMultiplier, TerrainTextureImage, TileX, TileY, Zoom)
+		ShapeMesh = hmTool.AlterTerrainMesh(ShapeMesh, TerrainImage, null, _nexty.TerrainImage, HeightOffset, Size, HeigthMultiplier, TerrainTextureImage, TileX, TileY, Zoom)
 #	if(_nextx != null && _nexty != null && ShapeMesh != null):
 #		ShapeMesh = hmTool.AlterTerrainMesh(ShapeMesh, TerrainImage, _nextx.TerrainImage, _nexty.TerrainImage, 0, null, 1, TerrainTextureImage, TileX, TileY, Zoom)
 	$TerrainMesh.mesh = ShapeMesh

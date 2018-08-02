@@ -15,6 +15,7 @@ var width = 0
 var heigth = 0
 var surf_tool =  sth.new()
 var max_min_height = null
+var altitude_multiplier = 0.0
 
 func _init():
 	smf = preload("res://addons/TerrainLoader/helpers/slippy_map_functions.gd")
@@ -152,7 +153,7 @@ func createMesh(ht, total_size = 0, height_multiplier = 1, Zoom = 1, _subset = 1
 		# Altitude should be proportional to size
 		# Height multiplier is used to enhace altitudes,
 		# a value of 1 maintain real altitudes
-		var altitude_multiplier =  float(height_multiplier * dist / pxl_mtrs)
+		altitude_multiplier =  float(height_multiplier * dist / pxl_mtrs)
 		var x = 0
 		if(ht):
 			surf_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -319,7 +320,7 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		# Altitude should be proportional to size
 		# Height multiplier is used to enhace altitudes,
 		# a value of 1 maintain real altitudes
-		var altitude_multiplier =  float(height_multiplier * dist / pxl_mtrs_t)
+		altitude_multiplier =  float(height_multiplier * dist / pxl_mtrs_t)
 		var height_scale = altitude_multiplier * dist
 		
 		var txr_tl = Color()
@@ -360,7 +361,7 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 			for x in rangeX:
 				if(width-x <= 2):
 					x_limiter = 1
-				set_squareHeights(hm_sbs_img, x, y, x_limiter, y_limiter, 0)
+				set_squareHeights(hm_sbs_img, x, y, x_limiter, y_limiter, max_min_height.minh)
 					
 				if(color_vertices):
 					txr_tl = txtr_sbs_img.get_pixel(x, y)
@@ -640,7 +641,9 @@ func AlterTerrainMesh(_mesh, _hmo, _hms, _hmb, _offset, _total_size, _height_mul
 		var half_size = heigth /2.0
 		var dist = float (size / width)
 		var step_size = 2
-		var altitude_multiplier =  float(_height_multiplier * dist / pxl_mtrs_max)
+		altitude_multiplier =  float(_height_multiplier * dist / pxl_mtrs_max)
+		print(altitude_multiplier)
+		print(_offset)
 		var rangeX = range(0,width, step_size)
 		var rangeY = range(0,heigth, step_size)
 		surf_tool.begin(Mesh.PRIMITIVE_TRIANGLES)

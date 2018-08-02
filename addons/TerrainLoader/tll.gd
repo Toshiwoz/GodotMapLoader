@@ -39,15 +39,22 @@ func _ready():
 	scene_root = tree.current_scene
 	if(scene_root == null):
 		scene_root = tree.edited_scene_root
-	
-	tl = tls.instance()
-	self.add_child(tl)
-	tl.set_owner(self)
-	MapLoaderHeightMap = tl.find_node("MapLoaderHeightMap")
-	MapLoaderTexture = tl.find_node("MapLoaderTexture")
-	MapLoaderHeightMap.connect("request_completed", self, "_on_MapLoaderHeightMap_request_completed")
-	MapLoaderTexture.connect("request_completed", self, "_on_MapLoaderTexture_request_completed")
-	terrain = find_node("terrain")
+	_instance_nodes()
+
+func _instance_nodes():
+	if tl == null:
+		tl = tls.instance()
+		self.add_child(tl)
+		tl.set_owner(self)
+	print_tree_pretty()
+	if MapLoaderHeightMap == null:
+		MapLoaderHeightMap = tl.find_node("MapLoaderHeightMap")
+		MapLoaderHeightMap.connect("request_completed", self, "_on_MapLoaderHeightMap_request_completed")
+	if MapLoaderTexture == null:
+		MapLoaderTexture = tl.find_node("MapLoaderTexture")
+		MapLoaderTexture.connect("request_completed", self, "_on_MapLoaderTexture_request_completed")
+	if terrain == null:
+		terrain = find_node("terrain")
 
 func _get_pxlx():
 	return pxlx
@@ -114,6 +121,7 @@ func _setCoords(_lon = 0, _lat = 0, _zoom = 1):
 		if(getTilexyz(tile.tilex, tile.tiley, _zoom) != null):
 			print("this tile already exists, remove it first")
 		else:
+			_instance_nodes()
 			_request_map(tile.tilex, tile.tiley, _zoom, false)
 			_request_map(tile.tilex, tile.tiley, _zoom, true)
 		
@@ -179,8 +187,8 @@ func generate_terrain_meshes():
 	if(TerrainHeightMap != null && TerrainTexture != null):
 		if(TerrainHeightMap.get_size().length() > 0
 		&& TerrainTexture.get_size().length() > 0):
-			print("Adding Terrain tiles...")					
-			_setTerrainNode()					
+			print("Adding Terrain tiles...")
+			_setTerrainNode()
 			for tile in terrain.get_children():
 				if(tile.Zoom == tilecoords.z && tile.TileX == tilecoords.x && tile.TileY == tilecoords.y):
 					print("replacing tile " + tile.name)
@@ -195,14 +203,19 @@ func generate_terrain_meshes():
 				terr_node.SubsetShift = true
 				terr_node.initialize_map(int(tilecoords.z), int(tilecoords.x), int(tilecoords.y), HeighMultiplier, subdivide, tile_number, TerrainHeightMap, TerrainTexture)
 				if UseThreads:
-#					ThreadML = Thread.new()
-					if ThreadML.is_active():
-						ThreadML.call_deferred("wait_to_finish")
-					ThreadML.start(terr_node, "SetMapShapeAndCollision", null)
+					ThreadML.start(terr_node, "_call_set_shape", [terr_node])
 				else:
 					terr_node.SetMapShapeAndCollision()
 	if(ArrangeTiles):
 		ArrangeTilesInGrid()
+		
+func _call_set_shape(params = null):
+	params[0].SetMapShapeAndCollision()
+	call_deferred("_end_load_terrain_thread")
+
+func _end_load_terrain_thread():
+	ThreadML.wait_to_finish()
+	print("Thread finished")
 
 func ArrangeTilesInGrid():
 	var terrain = find_node("terrain")
@@ -215,7 +228,7 @@ func ArrangeTilesInGrid():
 				var dif_x = tile.TileX - first_tile.TileX
 				var dif_y =tile.TileY - first_tile.TileY
 				tile.translation.x = first_tile.translation.x + (first_tile.tileAABB.size.x * dif_x)
-				tile.translation.y = first_tile.translation.y
+				tile.translation.y = first_tile.translation.y + first_tile.HeightOffset - tile.HeightOffset
 				tile.translation.z = first_tile.translation.z + (first_tile.tileAABB.size.z * dif_y)
 			tile.ModifyArea(getTilexyz(tile.TileX+1, tile.TileY, tile.Zoom), getTilexyz(tile.TileX, tile.TileY+1, tile.Zoom))
 
