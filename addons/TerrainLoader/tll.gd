@@ -46,7 +46,6 @@ func _instance_nodes():
 		tl = tls.instance()
 		self.add_child(tl)
 		tl.set_owner(self)
-	print_tree_pretty()
 	if MapLoaderHeightMap == null:
 		MapLoaderHeightMap = tl.find_node("MapLoaderHeightMap")
 		MapLoaderHeightMap.connect("request_completed", self, "_on_MapLoaderHeightMap_request_completed")
@@ -139,6 +138,7 @@ func _setTiles(_tilex = 0, _tiley = 0, _zoom = 1):
 		if(getTilexyz(_tilex, _tiley, _zoom) != null):
 			print("this tile already exists, remove it first")
 		else:
+			_instance_nodes()
 			_request_map(_tilex, _tiley, _zoom, false)
 			_request_map(_tilex, _tiley, _zoom, true)
 	
@@ -228,7 +228,7 @@ func ArrangeTilesInGrid():
 				var dif_x = tile.TileX - first_tile.TileX
 				var dif_y =tile.TileY - first_tile.TileY
 				tile.translation.x = first_tile.translation.x + (first_tile.tileAABB.size.x * dif_x)
-				tile.translation.y = first_tile.translation.y + first_tile.HeightOffset - tile.HeightOffset
+				tile.translation.y = first_tile.translation.y - (first_tile.HeightOffset * first_tile.AltitudeMultiplier) + (tile.HeightOffset * tile.AltitudeMultiplier)
 				tile.translation.z = first_tile.translation.z + (first_tile.tileAABB.size.z * dif_y)
 			tile.ModifyArea(getTilexyz(tile.TileX+1, tile.TileY, tile.Zoom), getTilexyz(tile.TileX, tile.TileY+1, tile.Zoom))
 
