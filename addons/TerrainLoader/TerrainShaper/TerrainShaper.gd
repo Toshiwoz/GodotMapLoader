@@ -33,46 +33,46 @@ func _setRedraw(_newval):
 	SetMapShapeAndCollision("force")
 
 func _setZoom(_newvalue):
-	if(Zoom != _newvalue):
+	if Zoom != _newvalue:
 		Zoom = _newvalue
 		SetMapShapeAndCollision()
 	
 func _setSize(_newvalue):
-	if(Size != _newvalue):
+	if Size != _newvalue:
 		Size = _newvalue
 		SetMapShapeAndCollision()
 	
 func _setHeightM(_newvalue):
-	if(HeigthMultiplier != _newvalue):
+	if HeigthMultiplier != _newvalue:
 		HeigthMultiplier = _newvalue
 		SetMapShapeAndCollision()
 	
 func _setSubSection(_newvalue):
-	if(Subset != _newvalue):
+	if Subset != _newvalue:
 		Subset = _FixSubset(_newvalue)
 		SetMapShapeAndCollision()
 	
 func _setDivideInto(_newvalue):
-	if(DivideInto != _newvalue):
+	if DivideInto != _newvalue:
 		DivideInto = _newvalue
 		Subset = _FixSubset(Subset)
 		SetMapShapeAndCollision()
 	
 func _setMap(_newvalue):
-	if(TerrainHeightMapPath != _newvalue):
+	if TerrainHeightMapPath != _newvalue:
 		TerrainHeightMapPath = _newvalue
 		TerrainImage.load(TerrainHeightMapPath)
 		SetMapShapeAndCollision()
 		
 func _setMapTexture(_newvalue):
-	if(TerrainTexturePath != _newvalue):
+	if TerrainTexturePath != _newvalue:
 		TerrainTexturePath = _newvalue
 		TerrainTextureImage.load(TerrainTexturePath)
 		SetMapShapeAndCollision()
 	
 func _FixSubset(_subsVal):
 	NumberOfSections = DivideInto * DivideInto
-	if(_subsVal > NumberOfSections):
+	if _subsVal > NumberOfSections:
 		_subsVal = NumberOfSections
 	return _subsVal
 
@@ -96,11 +96,11 @@ func initialize_map(_zoom = 1, _tilex = 0, _tiley = 0, _hmultiplier = 1, _divide
 	$TerrainMesh.material_override = hmTool.SetMaterialTexture(_txtr_img)
 	
 func SetMapShapeAndCollision(params = null):
-	if(ShapeMesh != null):
+	if ShapeMesh != null:
 		$TerrainMesh.mesh = ShapeMesh
-	if(Coll != null):
+	if Coll != null:
 		$TerrainCollision.shape = Coll
-	if(TerrainImage != null
+	if (TerrainImage != null
 		&& TerrainTextureImage != null
 		&& !TerrainImage.is_empty()
 		&& !TerrainTextureImage.is_empty()
@@ -109,7 +109,7 @@ func SetMapShapeAndCollision(params = null):
 #		HeightMap = hmTool.GenerateHeightMap(TerrainImage, TerrainTextureImage, Subset, DivideInto)
 #		$TerrainMesh.mesh = hmTool.createMesh(HeightMap, Size, HeigthMultiplier, Zoom, Subset, DivideInto, SubsetShift, MeshPath)
 
-		if(Zoom > 6):
+		if Zoom > 6:
 			$TerrainMesh.mesh = hmTool.createMeshFromImage(TerrainImage, TerrainTextureImage, Size, HeigthMultiplier, Zoom, TileX, TileY, Subset, DivideInto, true)
 		else:
 			$TerrainMesh.mesh = hmTool.CreateMeshFromImage_sph(TerrainImage, TerrainTextureImage, Size, HeigthMultiplier, Zoom, TileX, TileY, Subset, DivideInto, false)
@@ -122,13 +122,13 @@ func SetMapShapeAndCollision(params = null):
 		$TerrainCollision.shape = ConcavePolygonShape.new()
 		$TerrainCollision.shape.set_faces($TerrainMesh.mesh.get_faces())
 		Coll = $TerrainCollision.shape
-		if(MeshPath != null):
+		if MeshPath != null:
 			ResourceSaver.save(MeshPath, $TerrainMesh.mesh)
-		if(SubsetShift):
+		if SubsetShift:
 			var Coords = hmTool._subsetToXYCoords(Subset, DivideInto)
 			var actual_size = TerrainImage.get_width() / DivideInto
 			var dist = 1
-			if(Size != 0):
+			if Size != 0:
 				actual_size = Size
 			var x_shift = Coords["y"] * (actual_size - dist) - (actual_size - dist) * 0.5
 			var z_shift = - Coords["x"] * (actual_size - dist) + (actual_size - dist) * 0.5
@@ -138,11 +138,11 @@ func SetMapShapeAndCollision(params = null):
 	return false
 
 func ModifyArea(_nextx, _nexty):
-	if(_nextx != null && ShapeMesh != null):
+	if _nextx != null && ShapeMesh != null:
 		ShapeMesh = hmTool.AlterTerrainMesh(ShapeMesh, TerrainImage, _nextx.TerrainImage, null, HeightOffset, Size, HeigthMultiplier, TerrainTextureImage, TileX, TileY, Zoom)
-	if(_nexty != null && ShapeMesh != null):
+	if _nexty != null && ShapeMesh != null:
 		ShapeMesh = hmTool.AlterTerrainMesh(ShapeMesh, TerrainImage, null, _nexty.TerrainImage, HeightOffset, Size, HeigthMultiplier, TerrainTextureImage, TileX, TileY, Zoom)
-#	if(_nextx != null && _nexty != null && ShapeMesh != null):
+#	if _nextx != null && _nexty != null && ShapeMesh != null):
 #		ShapeMesh = hmTool.AlterTerrainMesh(ShapeMesh, TerrainImage, _nextx.TerrainImage, _nexty.TerrainImage, 0, null, 1, TerrainTextureImage, TileX, TileY, Zoom)
 	$TerrainMesh.mesh = ShapeMesh
 	

@@ -25,7 +25,7 @@ static func _subsetToXYCoords(_subset, _divideinto):
 	var subsetY = 1
 	for ss in range(1, _subset):
 		subsetX += 1
-		if(subsetX > _divideinto):
+		if subsetX > _divideinto:
 			subsetY += 1
 			subsetX = 1
 	
@@ -35,12 +35,12 @@ static func _subsetToXYCoords(_subset, _divideinto):
 	
 static func GetPixelDistance(_heightMap, _totalSize):
 	var dist = 0
-	if(_heightMap != null):
+	if _heightMap != null:
 		var hmSize = float(_heightMap.size())
 		var tileSize = hmSize
-		if(_totalSize == null):
+		if _totalSize == null:
 			_totalSize = 0
-		if(_totalSize > 0):
+		if _totalSize > 0:
 			tileSize = _totalSize
 		dist = float (tileSize / hmSize)
 	return dist
@@ -52,9 +52,9 @@ static func GetMaxMinHight(_img = Image.new()):
 	for y in range(_img.get_height()):
 		for x in range(_img.get_width()):
 			alt_tl = GetHeightFromPxl(_img.get_pixel(x, y))
-			if(alt_tl < MaxMin.minh):
+			if alt_tl < MaxMin.minh:
 				MaxMin.minh = alt_tl
-			if(alt_tl > MaxMin.maxh):
+			if alt_tl > MaxMin.maxh:
 				MaxMin.maxh = alt_tl
 	_img.unlock()
 	return MaxMin
@@ -64,7 +64,7 @@ static func GetHeightFromPxl(_pxl):
 	return -10000 + ((_pxl.r8 * 256 * 256 + _pxl.g8 * 256 + _pxl.b8) * 0.1)
 
 func GetImageSubset(_image, _divideinto, _subset, _addpixel = Vector2(0, 0)):
-	if(_image != null):
+	if _image != null:
 		var coords = _subsetToXYCoords(_subset, _divideinto)
 		var imgsswidth = _image.get_width() / _divideinto
 		var imgssheight = _image.get_height() / _divideinto
@@ -88,12 +88,12 @@ func GenerateHeightMap(_hm_img, _txtr_img, _subset, _divideinto):
 	var hm = []
 	var coords = _subsetToXYCoords(_subset, _divideinto)
 	var lastvalx = 1
-	if(coords["x"] == _divideinto):
+	if coords["x"] == _divideinto:
 		lastvalx = -1
 	var lastvaly = 1
-	if(coords["y"] == _divideinto):
+	if coords["y"] == _divideinto:
 		lastvaly = -1
-	if(!_hm_img.is_empty() && !_txtr_img.is_empty()):
+	if !_hm_img.is_empty() && !_txtr_img.is_empty():
 		var startt = float(OS.get_ticks_msec())
 		var TerrainImage = _hm_img
 		TerrainImage.lock()
@@ -115,9 +115,9 @@ func GenerateHeightMap(_hm_img, _txtr_img, _subset, _divideinto):
 				var pxlTexture = TerrainTextureImage.get_pixel(pxlX, pxlY)
 				var altitude = -10000 + ((pxl.r8 * 256 * 256 + pxl.g8 * 256 + pxl.b8) * 0.1)
 				hm[y][x] =  {"height":altitude, "color":pxlTexture}
-				if(altitude < minh):
+				if altitude < minh:
 					minh = altitude
-				if(altitude > maxh):
+				if altitude > maxh:
 					maxh = altitude
 #			print(rngX)
 		TerrainImage.unlock()
@@ -130,11 +130,11 @@ func GenerateHeightMap(_hm_img, _txtr_img, _subset, _divideinto):
 	return hm
 
 func createMesh(ht, total_size = 0, height_multiplier = 1, Zoom = 1, _subset = 1, _divideinto = 4, _trimheight = false, _mesh_path = null):
-	if(_mesh_path != null):
+	if _mesh_path != null:
 		var _stored_mesh = ResourceLoader(_mesh_path)
-		if(_stored_mesh != null):
+		if _stored_mesh != null:
 			return _stored_mesh
-	if(ht.size() > 0):
+	if ht.size() > 0:
 		var startt = float(OS.get_ticks_msec())
 		var surf_tool = SurfaceTool.new()
 		var width = ht.size()
@@ -142,9 +142,9 @@ func createMesh(ht, total_size = 0, height_multiplier = 1, Zoom = 1, _subset = 1
 		print("Length %d - Width %d" % [lenght, width])
 		var pxl_mtrs = smf.adjust_dist_from_latzoom(earth_circ, 0, Zoom)
 		var size = float(ht.size())
-		if(total_size == null):
+		if total_size == null:
 			total_size = 0
-		if(total_size > 0):
+		if total_size > 0:
 			size = total_size
 		var half_size = size /2.0
 		var dist = float (size / width)
@@ -155,13 +155,13 @@ func createMesh(ht, total_size = 0, height_multiplier = 1, Zoom = 1, _subset = 1
 		# a value of 1 maintain real altitudes
 		altitude_multiplier =  float(height_multiplier * dist / pxl_mtrs)
 		var x = 0
-		if(ht):
+		if ht:
 			surf_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
 			for i in range (width-1):
 				for j in range (lenght-1):
-					if(maxh < ht[i][j]["height"] * altitude_multiplier):
+					if maxh < ht[i][j]["height"] * altitude_multiplier:
 						maxh = ht[i][j]["height"] * altitude_multiplier
-					if(minh > ht[i][j]["height"] * altitude_multiplier):
+					if minh > ht[i][j]["height"] * altitude_multiplier:
 						minh = ht[i][j]["height"] * altitude_multiplier
 						
 					var bottomleft = Vector3(i * dist - half_size, ht[i][j]["height"] * altitude_multiplier, j * dist - half_size)
@@ -246,28 +246,28 @@ func set_mesh_fan(x, y, dist_proportion_b, height_scale, half_size, sq_heights, 
 	surf_tool.add_fan_element(setTriangleFanVertex(x, y, 0, 0, dist_proportion_b, height_scale, half_size, sq_heights)
 							, set_vertex_uv(x + uv_offset_x, y + uv_offset_y, 0, 0))
 	
-	if(sq_heights[0][0]-sq_heights[1][0] != sq_heights[1][0]-sq_heights[2][0]):
+	if sq_heights[0][0]-sq_heights[1][0] != sq_heights[1][0]-sq_heights[2][0]:
 		surf_tool.add_fan_element(setTriangleFanVertex(x, y, 1, 0, dist_proportion_b, height_scale, half_size, sq_heights)
 								, set_vertex_uv(x + uv_offset_x, y + uv_offset_y, 1, 0))
 	
 	surf_tool.add_fan_element(setTriangleFanVertex(x, y, 2, 0, dist_proportion_b, height_scale, half_size, sq_heights)
 							, set_vertex_uv(x + uv_offset_x, y + uv_offset_y, 2, 0))
 		
-	if(sq_heights[2][0]-sq_heights[2][1] != sq_heights[2][1]-sq_heights[2][2]):
+	if sq_heights[2][0]-sq_heights[2][1] != sq_heights[2][1]-sq_heights[2][2]:
 		surf_tool.add_fan_element(setTriangleFanVertex(x, y, 2, 1, dist_proportion_b, height_scale, half_size, sq_heights)
 								, set_vertex_uv(x + uv_offset_x, y + uv_offset_y, 2, 1))
 	
 	surf_tool.add_fan_element(setTriangleFanVertex(x, y, 2, 2, dist_proportion_b, height_scale, half_size, sq_heights)
 							, set_vertex_uv(x + uv_offset_x, y + uv_offset_y, 2, 2))
 		
-	if(sq_heights[2][2]-sq_heights[1][2] != sq_heights[1][2]-sq_heights[0][2]):
+	if sq_heights[2][2]-sq_heights[1][2] != sq_heights[1][2]-sq_heights[0][2]:
 		surf_tool.add_fan_element(setTriangleFanVertex(x, y, 1, 2, dist_proportion_b, height_scale, half_size, sq_heights)
 								, set_vertex_uv(x + uv_offset_x, y + uv_offset_y, 1, 2))
 	
 	surf_tool.add_fan_element(setTriangleFanVertex(x, y, 0, 2, dist_proportion_b, height_scale, half_size, sq_heights)
 							, set_vertex_uv(x + uv_offset_x, y + uv_offset_y, 0, 2))
 		
-	if(sq_heights[0][2]-sq_heights[0][1] != sq_heights[0][1]-sq_heights[0][0]):
+	if sq_heights[0][2]-sq_heights[0][1] != sq_heights[0][1]-sq_heights[0][0]:
 		surf_tool.add_fan_element(setTriangleFanVertex(x, y, 0, 1, dist_proportion_b, height_scale, half_size, sq_heights)
 								, set_vertex_uv(x + uv_offset_x, y + uv_offset_y, 0, 1))
 	
@@ -278,16 +278,16 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 	var color_vertices = false
 	var coords = _subsetToXYCoords(_subset, _divideinto)
 	var lastvalx = 1
-	if(coords["x"] == _divideinto):
+	if coords["x"] == _divideinto:
 		lastvalx = -1
 	var lastvaly = 1
-	if(coords["y"] == _divideinto):
+	if coords["y"] == _divideinto:
 		lastvaly = -1
-	if(!_hm_img.is_empty() && !_txtr_img.is_empty()):
+	if !_hm_img.is_empty() && !_txtr_img.is_empty():
 		var startt = float(OS.get_ticks_msec())
 		var hm_sbs_img = _hm_img
 		var txtr_sbs_img = _txtr_img
-		if(_divideinto > 1):
+		if _divideinto > 1:
 			hm_sbs_img = GetImageSubset(_hm_img, _divideinto, _subset, Vector2(lastvalx, lastvaly))
 			txtr_sbs_img = GetImageSubset(_txtr_img, _divideinto, _subset, Vector2(lastvalx, lastvaly))
 		
@@ -302,15 +302,15 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		var x_limiter = 0
 		var y_limiter = 0
 		var pxl_mtrs_max = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, _tiley, Zoom)
-#		if(pxl_mtrs_max < smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, _tiley+1, Zoom)):
+#		if pxl_mtrs_max < smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, _tiley+1, Zoom)):
 #			pxl_mtrs_max = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, _tiley+1, Zoom)
 		var pxl_mtrs_t = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, _tiley, Zoom)
 		var pxl_mtrs_b = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, _tiley, Zoom)
 		var pxl_mtrs_b2 = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, _tiley, Zoom)
 		var size = float(heigth)
-		if(total_size == null):
+		if total_size == null:
 			total_size = 0
-		if(total_size > 0):
+		if total_size > 0:
 			size = total_size
 		var half_size = heigth /2.0
 		var dist = float (size / width)
@@ -344,13 +344,13 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 		surf_tool.add_smooth_group(true)
 #		surf_tool.add_color(Color(1,1,1))
 		for y in rangeY:
-			if(heigth-y <= 2):
+			if heigth-y <= 2:
 				y_limiter = 1
 			x_limiter = 0
 			# getting adjusted distances
 			# as it should change only on latitute change, 
 			# we adjust it here in the y loop
-			if(_adj_dist):
+			if _adj_dist:
 				pxl_mtrs_t = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, float(_tiley) + float(y)/float(heigth), Zoom)
 				pxl_mtrs_b = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, float(_tiley) + float(y+1)/float(heigth), Zoom)
 				pxl_mtrs_b2 = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, float(_tiley) + float(y+2)/float(heigth), Zoom)
@@ -359,11 +359,11 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 				dist_proportion_b2 = dist * pxl_mtrs_b2 / pxl_mtrs_max
 				
 			for x in rangeX:
-				if(width-x <= 2):
+				if width-x <= 2:
 					x_limiter = 1
 				set_squareHeights(hm_sbs_img, x, y, x_limiter, y_limiter, max_min_height.minh)
 					
-				if(color_vertices):
+				if color_vertices:
 					txr_tl = txtr_sbs_img.get_pixel(x, y)
 					txr_tr = txtr_sbs_img.get_pixel(x + 1, y)
 					txr_tr2 = txtr_sbs_img.get_pixel(x + 2 - x_limiter, y)
@@ -376,15 +376,15 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 				
 				set_mesh_fan(x, y, dist_proportion_b, altitude_multiplier, half_size, sq_heights)
 				
-				if(x_limiter == 1 && y_limiter == 1):
+				if x_limiter == 1 && y_limiter == 1:
 					side_xy_vertices.append(surf_tool.arr_vtx)
 					side_xy_uvs.append(surf_tool.arr_uvs)
 					surf_tool.reset_fan()
-				elif(x_limiter == 1):
+				elif x_limiter == 1:
 					side_x_vertices.append(surf_tool.arr_vtx)
 					side_x_uvs.append(surf_tool.arr_uvs)
 					surf_tool.reset_fan()
-				elif(y_limiter == 1):
+				elif y_limiter == 1:
 					side_y_vertices.append(surf_tool.arr_vtx)
 					side_y_uvs.append(surf_tool.arr_uvs)
 					surf_tool.reset_fan()
@@ -418,17 +418,17 @@ func CreateMeshFromImage_sph(_hm_img = Image.new(), _txtr_img = Image.new(), tot
 	var color_vertices = false
 	var coords = _subsetToXYCoords(_subset, _divideinto)
 	var lastvalx = 1
-	if(coords["x"] == _divideinto):
+	if coords["x"] == _divideinto:
 		lastvalx = -1
 	var lastvaly = 1
-	if(coords["y"] == _divideinto):
+	if coords["y"] == _divideinto:
 		lastvaly = -1
-	if(!_hm_img.is_empty() && !_txtr_img.is_empty()):
+	if !_hm_img.is_empty() && !_txtr_img.is_empty():
 		var surf_tool =  sth.new()#SurfaceTool.new()
 		var startt = float(OS.get_ticks_msec())
 		var hm_sbs_img = _hm_img
 		var txtr_sbs_img = _txtr_img
-		if(_divideinto > 1):
+		if _divideinto > 1:
 			hm_sbs_img = GetImageSubset(_hm_img, _divideinto, _subset, Vector2(lastvalx, lastvaly))
 			txtr_sbs_img = GetImageSubset(_txtr_img, _divideinto, _subset, Vector2(lastvalx, lastvaly))
 		var max_min_h = GetMaxMinHight(hm_sbs_img)
@@ -442,7 +442,7 @@ func CreateMeshFromImage_sph(_hm_img = Image.new(), _txtr_img = Image.new(), tot
 		var x_limiter = 0
 		var y_limiter = 0
 		var pxl_mtrs_max = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, _tiley, Zoom)
-		if(pxl_mtrs_max < smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, float(_tiley+1), Zoom)):
+		if pxl_mtrs_max < smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, float(_tiley+1), Zoom):
 			pxl_mtrs_max = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, float(_tiley+1), Zoom)
 		var pxl_mtrs_t = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, float(_tiley), Zoom)
 		var pxl_mtrs_b = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, float(_tiley), Zoom)
@@ -452,9 +452,9 @@ func CreateMeshFromImage_sph(_hm_img = Image.new(), _txtr_img = Image.new(), tot
 		var dist_proportion_b2 = pxl_mtrs_b2 / pxl_mtrs_max
 			
 		var size = float(heigth)
-		if(total_size == null):
+		if total_size == null:
 			total_size = 0
-		if(total_size > 0):
+		if total_size > 0:
 			size = total_size
 		var half_size = size /2.0
 		
@@ -478,7 +478,7 @@ func CreateMeshFromImage_sph(_hm_img = Image.new(), _txtr_img = Image.new(), tot
 #		surf_tool.add_color(Color(1,1,1))
 		var ll = Vector3()
 		for y in rangeY:
-			if(heigth-y <= 2):
+			if heigth-y <= 2:
 				y_limiter = 1
 			x_limiter = 0
 			# getting adjusted distances
@@ -491,14 +491,14 @@ func CreateMeshFromImage_sph(_hm_img = Image.new(), _txtr_img = Image.new(), tot
 			dist_proportion_b = pxl_mtrs_b / pxl_mtrs_max
 			dist_proportion_b2 = pxl_mtrs_b2 / pxl_mtrs_max
 			for x in rangeX:
-				if(width-x <= 2):
+				if width-x <= 2:
 					x_limiter = 1
 				arr_vtx.resize(0)
 				arr_uvs.resize(0)
 				arr_cols.resize(0)
 				set_squareHeights(hm_sbs_img, x, y, x_limiter, y_limiter, 0)
 					
-				if(color_vertices):
+				if color_vertices:
 					txr_tl = txtr_sbs_img.get_pixel(x, y)
 					txr_tr = txtr_sbs_img.get_pixel(x + 1, y)
 					txr_tr2 = txtr_sbs_img.get_pixel(x + 2 - x_limiter, y)
@@ -516,60 +516,60 @@ func CreateMeshFromImage_sph(_hm_img = Image.new(), _txtr_img = Image.new(), tot
 				ll = smf.tile_on_sphere_q2((sq_heights[0][0]*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x)/float(width+1), float(y)/float(heigth+1), Zoom)
 				arr_vtx.append(ll)
 				arr_uvs.append(Vector2(float(x)/float(width+1), float(y)/float(heigth+1)))
-				if(color_vertices):
+				if color_vertices:
 					arr_cols.append(txr_br)
 					arr_cols.append(txr_tl)
 				
-				if(true):
+				if true:
 					ll = smf.tile_on_sphere_q2((sq_heights[1][0]*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x+1)/float(width+1), float(y)/float(heigth+1), Zoom)
 					arr_vtx.append(ll)
 					arr_uvs.append(Vector2(float(x+1)/float(width+1), float(y)/float(heigth+1)))
-					if(color_vertices):
+					if color_vertices:
 						arr_cols.append(txr_tr)
 						
 				ll = smf.tile_on_sphere_q2((sq_heights[2][0]*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x+2)/float(width+1), float(y)/float(heigth+1), Zoom)
 				arr_vtx.append(ll)
 				arr_uvs.append(Vector2(float(x+2)/float(width+1), float(y)/float(heigth+1)))
-				if(color_vertices):
+				if color_vertices:
 					arr_cols.append(txr_tr2)
 					
-				if(true):
+				if true:
 					ll = smf.tile_on_sphere_q2((sq_heights[1][2]*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x+2)/float(width+1), float(y+1)/float(heigth+1), Zoom)
 					arr_vtx.append(ll)
 					arr_uvs.append(Vector2(float(x+2)/float(width+1), float(y+1)/float(heigth+1)))
-					if(color_vertices):
+					if color_vertices:
 						arr_cols.append(txr_br2)
 						
 				ll = smf.tile_on_sphere_q2((sq_heights[2][2]*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x+2)/float(width+1), float(y+2)/float(heigth+1), Zoom)
 				arr_vtx.append(ll)
 				arr_uvs.append(Vector2(float(x+2)/float(width+1), float(y+2)/float(heigth+1)))
-				if(color_vertices):
+				if color_vertices:
 					arr_cols.append(txr_b2r2)
 					
-				if(true):
+				if true:
 					ll = smf.tile_on_sphere_q2((sq_heights[1][2]*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x+1)/float(width+1), float(y+2)/float(heigth+1), Zoom)
 					arr_vtx.append(ll)
 					arr_uvs.append(Vector2(float(x+1)/float(width+1), float(y+2)/float(heigth+1)))
-					if(color_vertices):
+					if color_vertices:
 						arr_cols.append(txr_b2r)
 				
 				ll = smf.tile_on_sphere_q2((sq_heights[0][2]*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x)/float(width+1), float(y+2)/float(heigth+1), Zoom)
 				arr_vtx.append(ll)
 				arr_uvs.append(Vector2(float(x)/float(width+1), float(y+2)/float(heigth+1)))
-				if(color_vertices):
+				if color_vertices:
 					arr_cols.append(txr_b2l)
 					
-				if(true):
+				if true:
 					ll = smf.tile_on_sphere_q2((sq_heights[0][1]*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x)/float(width+1), float(y+1)/float(heigth+1), Zoom)
 					arr_vtx.append(ll)
 					arr_uvs.append(Vector2(float(x)/float(width+1), float(y+1)/float(heigth+1)))
-					if(color_vertices):
+					if color_vertices:
 						arr_cols.append(txr_bl)
 									
 				ll = smf.tile_on_sphere_q2((sq_heights[0][0]*height_multiplier+smf.EARTH_RADIUS)/pxl_mtrs_max, float(_tilex), float(_tiley), float(x)/float(width+1), float(y)/float(heigth+1), Zoom)
 				arr_vtx.append(ll)
 				arr_uvs.append(Vector2(float(x)/float(width+1), float(y)/float(heigth+1)))
-				if(color_vertices):
+				if color_vertices:
 					arr_cols.append(txr_tl)
 				
 				surf_tool.add_rectangle(arr_vtx, arr_uvs, arr_cols, false, true)
@@ -603,27 +603,27 @@ func GetSideVertices(_mesh = ArrayMesh.new(), _side = Vector2()):
 	var current_vertex = Vector3()
 	for v in range(mdt.get_vertex_count()):
 		current_vertex = mdt.get_vertex(v)
-		if(_side.x == -1):
-			if(current_vertex.x <= mesh_aabb.position.x):
+		if _side.x == -1):
+			if current_vertex.x <= mesh_aabb.position.x):
 				side_vertices.append([v, current_vertex])
 				print([v, current_vertex])
-		if(_side.x == 1):
-			if(current_vertex.x >= mesh_aabb.end.x):
+		if _side.x == 1):
+			if current_vertex.x >= mesh_aabb.end.x):
 				side_vertices.append([v, current_vertex])
 				print([v, current_vertex])
-		if(_side.y == -1):
-			if(current_vertex.z <= mesh_aabb.position.z):
+		if _side.y == -1):
+			if current_vertex.z <= mesh_aabb.position.z):
 				side_vertices.append([v, current_vertex])
 				print([v, current_vertex])
-		if(_side.y == 1):
-			if(current_vertex.z >= mesh_aabb.end.z):
+		if _side.y == 1):
+			if current_vertex.z >= mesh_aabb.end.z):
 				side_vertices.append([v, current_vertex])
 				print([v, current_vertex])
 	return side_vertices
 
 func AlterTerrainMesh(_mesh, _hmo, _hms, _hmb, _offset, _total_size, _height_multiplier, _txtr_sbs_img, _tilex, _tiley, _zoom):
 	print("Altering terrain mesh...")
-	if(_mesh!= null && _hmo != null && (_hms != null || _hmb != null)):
+	if _mesh!= null && _hmo != null && (_hms != null || _hmb != null)):
 		_hmo.lock()
 		width = _hmo.get_width()
 		heigth = _hmo.get_height()
@@ -631,12 +631,12 @@ func AlterTerrainMesh(_mesh, _hmo, _hms, _hmb, _offset, _total_size, _height_mul
 		var x_limiter = 0
 		var y_limiter = 0
 		var pxl_mtrs_max = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, _tiley, _zoom)
-#		if(pxl_mtrs_max < smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, _tiley+1, _zoom)):
+#		if pxl_mtrs_max < smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, _tiley+1, _zoom)):
 #			pxl_mtrs_max = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, _tiley+1, _zoom)
 		var size = float(heigth)
-		if(_total_size == null):
+		if _total_size == null):
 			_total_size = 0
-		if(_total_size > 0):
+		if _total_size > 0):
 			size = _total_size
 		var half_size = heigth /2.0
 		var dist = float (size / width)
@@ -648,11 +648,11 @@ func AlterTerrainMesh(_mesh, _hmo, _hms, _hmb, _offset, _total_size, _height_mul
 		var rangeY = range(0,heigth, step_size)
 		surf_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
 		surf_tool.add_smooth_group(true)
-		if(_hms != null):
+		if _hms != null):
 			_hms.lock()
 			_side = "x"
 			for y in rangeY:
-				if(heigth-y <= 2):
+				if heigth-y <= 2):
 					y_limiter = 1
 				sq_heights[0][0] = GetHeightFromPxl(_hmo.get_pixel(width - 2, y)) - _offset
 				sq_heights[1][0] = GetHeightFromPxl(_hmo.get_pixel(width - 1, y)) - _offset
@@ -666,11 +666,11 @@ func AlterTerrainMesh(_mesh, _hmo, _hms, _hmb, _offset, _total_size, _height_mul
 				set_mesh_fan(width-2, y, dist, altitude_multiplier, half_size, sq_heights, 0, 0)
 				surf_tool.commit_fan()
 			_hms.unlock()
-		elif(_hmb != null):
+		elif _hmb != null):
 			_hmb.lock()
 			_side = "y"
 			for x in rangeX:
-				if(width-x <= 2):
+				if width-x <= 2):
 					x_limiter = 1
 				sq_heights[0][0] = GetHeightFromPxl(_hmo.get_pixel(x, heigth - 2)) - _offset
 				sq_heights[1][0] = GetHeightFromPxl(_hmo.get_pixel(x + 1, heigth - 2)) - _offset
@@ -686,7 +686,7 @@ func AlterTerrainMesh(_mesh, _hmo, _hms, _hmb, _offset, _total_size, _height_mul
 			_hmb.unlock()
 		for s in range(_mesh.get_surface_count()):
 			var surf_name = _mesh.surface_get_name(s)
-			if(surf_name == _side):
+			if surf_name == _side):
 				print("Removing surface %s at# %d" % [surf_name, s])
 				_mesh.surface_remove(s)
 				break
