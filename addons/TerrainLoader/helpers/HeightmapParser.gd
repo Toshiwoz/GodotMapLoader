@@ -603,27 +603,27 @@ func GetSideVertices(_mesh = ArrayMesh.new(), _side = Vector2()):
 	var current_vertex = Vector3()
 	for v in range(mdt.get_vertex_count()):
 		current_vertex = mdt.get_vertex(v)
-		if _side.x == -1):
-			if current_vertex.x <= mesh_aabb.position.x):
+		if _side.x == -1:
+			if current_vertex.x <= mesh_aabb.position.x:
 				side_vertices.append([v, current_vertex])
 				print([v, current_vertex])
-		if _side.x == 1):
-			if current_vertex.x >= mesh_aabb.end.x):
+		if _side.x == 1:
+			if current_vertex.x >= mesh_aabb.end.x:
 				side_vertices.append([v, current_vertex])
 				print([v, current_vertex])
-		if _side.y == -1):
-			if current_vertex.z <= mesh_aabb.position.z):
+		if _side.y == -1:
+			if current_vertex.z <= mesh_aabb.position.z:
 				side_vertices.append([v, current_vertex])
 				print([v, current_vertex])
-		if _side.y == 1):
-			if current_vertex.z >= mesh_aabb.end.z):
+		if _side.y == 1:
+			if current_vertex.z >= mesh_aabb.end.z:
 				side_vertices.append([v, current_vertex])
 				print([v, current_vertex])
 	return side_vertices
 
 func AlterTerrainMesh(_mesh, _hmo, _hms, _hmb, _offset, _total_size, _height_multiplier, _txtr_sbs_img, _tilex, _tiley, _zoom):
 	print("Altering terrain mesh...")
-	if _mesh!= null && _hmo != null && (_hms != null || _hmb != null)):
+	if _mesh!= null && _hmo != null && (_hms != null || _hmb != null):
 		_hmo.lock()
 		width = _hmo.get_width()
 		heigth = _hmo.get_height()
@@ -634,9 +634,9 @@ func AlterTerrainMesh(_mesh, _hmo, _hms, _hmb, _offset, _total_size, _height_mul
 #		if pxl_mtrs_max < smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, _tiley+1, _zoom)):
 #			pxl_mtrs_max = smf.adjust_dist_from_tile_zoom(earth_circ, _tilex, _tiley+1, _zoom)
 		var size = float(heigth)
-		if _total_size == null):
+		if _total_size == null:
 			_total_size = 0
-		if _total_size > 0):
+		if _total_size > 0:
 			size = _total_size
 		var half_size = heigth /2.0
 		var dist = float (size / width)
@@ -648,11 +648,11 @@ func AlterTerrainMesh(_mesh, _hmo, _hms, _hmb, _offset, _total_size, _height_mul
 		var rangeY = range(0,heigth, step_size)
 		surf_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
 		surf_tool.add_smooth_group(true)
-		if _hms != null):
+		if _hms != null:
 			_hms.lock()
 			_side = "x"
 			for y in rangeY:
-				if heigth-y <= 2):
+				if heigth-y <= 2:
 					y_limiter = 1
 				sq_heights[0][0] = GetHeightFromPxl(_hmo.get_pixel(width - 2, y)) - _offset
 				sq_heights[1][0] = GetHeightFromPxl(_hmo.get_pixel(width - 1, y)) - _offset
@@ -666,11 +666,11 @@ func AlterTerrainMesh(_mesh, _hmo, _hms, _hmb, _offset, _total_size, _height_mul
 				set_mesh_fan(width-2, y, dist, altitude_multiplier, half_size, sq_heights, 0, 0)
 				surf_tool.commit_fan()
 			_hms.unlock()
-		elif _hmb != null):
+		elif _hmb != null:
 			_hmb.lock()
 			_side = "y"
 			for x in rangeX:
-				if width-x <= 2):
+				if width-x <= 2:
 					x_limiter = 1
 				sq_heights[0][0] = GetHeightFromPxl(_hmo.get_pixel(x, heigth - 2)) - _offset
 				sq_heights[1][0] = GetHeightFromPxl(_hmo.get_pixel(x + 1, heigth - 2)) - _offset
@@ -686,7 +686,7 @@ func AlterTerrainMesh(_mesh, _hmo, _hms, _hmb, _offset, _total_size, _height_mul
 			_hmb.unlock()
 		for s in range(_mesh.get_surface_count()):
 			var surf_name = _mesh.surface_get_name(s)
-			if surf_name == _side):
+			if surf_name == _side:
 				print("Removing surface %s at# %d" % [surf_name, s])
 				_mesh.surface_remove(s)
 				break
