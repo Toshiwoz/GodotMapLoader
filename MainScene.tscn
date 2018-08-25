@@ -9,7 +9,7 @@
 
 _sections_unfolded = [ "Resource" ]
 
-[node name="MainScene" type="Spatial" index="0"]
+[node name="MainScene" type="Spatial"]
 
 script = ExtResource( 1 )
 _sections_unfolded = [ "Pause" ]

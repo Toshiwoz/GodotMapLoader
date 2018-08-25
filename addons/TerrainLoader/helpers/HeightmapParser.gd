@@ -31,7 +31,7 @@ static func _subsetToXYCoords(_subset, _divideinto):
 	
 #	print("Subset: " + var2str(_subset) + " - Divide into: " + var2str(_divideinto)
 #	+ " | Y:" + var2str(subsetY) + " - X:" + var2str(subsetX))
-	return {"x":subsetX, "y":subsetY}
+	return {x=subsetX, y=subsetY}
 	
 static func GetPixelDistance(_heightMap, _totalSize):
 	var dist = 0
@@ -60,16 +60,16 @@ static func GetMaxMinHight(_img = Image.new()):
 	return MaxMin
 
 # This is the formula that MapBox provides to convert HM image into meters
-static func GetHeightFromPxl(_pxl):
-	return -10000 + ((_pxl.r8 * 256 * 256 + _pxl.g8 * 256 + _pxl.b8) * 0.1)
+func GetHeightFromPxl(_pxl):
+	return -10000 + ((_pxl.r8 * 65536 + _pxl.g8 * 256 + _pxl.b8) * 0.1)
 
 func GetImageSubset(_image, _divideinto, _subset, _addpixel = Vector2(0, 0)):
 	if _image != null:
 		var coords = _subsetToXYCoords(_subset, _divideinto)
 		var imgsswidth = _image.get_width() / _divideinto
 		var imgssheight = _image.get_height() / _divideinto
-		var imgstart = Vector2( imgsswidth * (coords["x"] - 1),
-								imgssheight * (coords["y"] - 1))
+		var imgstart = Vector2( imgsswidth * (coords.x - 1),
+								imgssheight * (coords.y - 1))
 		var imgssize = Vector2(imgsswidth + _addpixel.x, imgssheight + _addpixel.y)
 		var imgsbst = _image.get_rect(Rect2(imgstart, imgssize))
 		return imgsbst
@@ -81,53 +81,42 @@ func SetMaterialTexture(_txtr_img):
 	mat.albedo_texture = imgtxtr
 	return mat
 
-#	_subset should be from 1 to _divideinto * _divideinto
-#	_divideinto should be from 1 to 100
-#	(considering an image of max 512x512px)
-func GenerateHeightMap(_hm_img, _txtr_img, _subset, _divideinto):
-	var hm = []
-	var coords = _subsetToXYCoords(_subset, _divideinto)
-	var lastvalx = 1
-	if coords["x"] == _divideinto:
-		lastvalx = -1
-	var lastvaly = 1
-	if coords["y"] == _divideinto:
-		lastvaly = -1
-	if !_hm_img.is_empty() && !_txtr_img.is_empty():
+#	Generates an array of arrays that contains
+#	height information from an image coming from 
+#	Mapbox elevation data, AKA Mapbox Terrain-RGB:
+#	https://www.mapbox.com/help/access-elevation-data/#mapbox-terrain-rgb
+func GenerateHeightMap(_hm_img = Image.new()):
+	var hm = Array()
+	var minh = 999999
+	var maxh = -1
+	if !_hm_img.is_empty():
 		var startt = float(OS.get_ticks_msec())
 		var TerrainImage = _hm_img
 		TerrainImage.lock()
-		var TerrainTextureImage = _txtr_img
-		TerrainTextureImage.lock()
-		var width = TerrainImage.get_width() / _divideinto
-		var heigth = TerrainImage.get_height() / _divideinto
-		var rangeX = range(width + lastvalx)
-		var rangeY = range(heigth + lastvaly)
-		var minh = 999999
-		var maxh = 0
+		var width = TerrainImage.get_width()
+		var heigth = TerrainImage.get_height()
+		var rangeX = range(width)
+		var rangeY = range(heigth)
+		hm.resize(heigth)
+		var x_arr = Array()
+		x_arr.resize(width)
 		for y in rangeY:
-			hm.append([])
 			for x in rangeX:
-				hm[y].append(x)
-				var pxlX = (coords["x"] - 1) * width + (width + lastvalx - x)
-				var pxlY = (coords["y"] - 1) * heigth + y + lastvaly
-				var pxl = TerrainImage.get_pixel(pxlX, pxlY)
-				var pxlTexture = TerrainTextureImage.get_pixel(pxlX, pxlY)
-				var altitude = -10000 + ((pxl.r8 * 256 * 256 + pxl.g8 * 256 + pxl.b8) * 0.1)
-				hm[y][x] =  {"height":altitude, "color":pxlTexture}
+				var pxl = TerrainImage.get_pixel(x, y)
+				var altitude = -10000 + ((pxl.r8 * 65536 + pxl.g8 * 256 + pxl.b8) * 0.1)
+				x_arr[x] =  altitude
 				if altitude < minh:
 					minh = altitude
 				if altitude > maxh:
 					maxh = altitude
-#			print(rngX)
+			hm[y] = x_arr
 		TerrainImage.unlock()
-		TerrainTextureImage.unlock()
 		var endtt = float(OS.get_ticks_msec())
 		print("Heightmap of"
 		+ " W/H: " + var2str(width) + "/" + var2str(heigth) 
 		+ ", Min/Max height: " + var2str(minh) + "/" + var2str(maxh)
 		+ " generated in %.2f seconds" % ((endtt - startt)/1000))
-	return hm
+	return {heightmap = hm, min_height = minh, max_height = maxh}
 
 func createMesh(ht, total_size = 0, height_multiplier = 1, Zoom = 1, _subset = 1, _divideinto = 4, _trimheight = false, _mesh_path = null):
 	if _mesh_path != null:
@@ -278,10 +267,10 @@ func createMeshFromImage(_hm_img = Image.new(), _txtr_img = Image.new(), total_s
 	var color_vertices = false
 	var coords = _subsetToXYCoords(_subset, _divideinto)
 	var lastvalx = 1
-	if coords["x"] == _divideinto:
+	if coords.x == _divideinto:
 		lastvalx = -1
 	var lastvaly = 1
-	if coords["y"] == _divideinto:
+	if coords.y == _divideinto:
 		lastvaly = -1
 	if !_hm_img.is_empty() && !_txtr_img.is_empty():
 		var startt = float(OS.get_ticks_msec())

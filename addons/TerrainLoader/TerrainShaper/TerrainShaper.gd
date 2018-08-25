@@ -81,6 +81,11 @@ func _getTileAABB():
 
 func _ready():
 	SetMapShapeAndCollision()
+	
+func GenerateCollision():
+	$TerrainCollision.shape = ConcavePolygonShape.new()
+	$TerrainCollision.shape.set_faces($TerrainMesh.mesh.get_faces())
+	Coll = $TerrainCollision.shape
 
 func initialize_map(_zoom = 1, _tilex = 0, _tiley = 0, _hmultiplier = 1, _divide = 4, _tile = 1, _hm_img = Image.new(), _txtr_img = Image.new(), _mesh_path = null, _subsetShift = true):
 	HeigthMultiplier = _hmultiplier
@@ -119,9 +124,7 @@ func SetMapShapeAndCollision(params = null):
 		var pos = $TerrainMesh.get_aabb()
 		pos.size.y = 0
 		self.translation = -pos.position - pos.size/2
-		$TerrainCollision.shape = ConcavePolygonShape.new()
-		$TerrainCollision.shape.set_faces($TerrainMesh.mesh.get_faces())
-		Coll = $TerrainCollision.shape
+		GenerateCollision()
 		if MeshPath != null:
 			ResourceSaver.save(MeshPath, $TerrainMesh.mesh)
 		if SubsetShift:
@@ -145,4 +148,5 @@ func ModifyArea(_nextx, _nexty):
 #	if _nextx != null && _nexty != null && ShapeMesh != null):
 #		ShapeMesh = hmTool.AlterTerrainMesh(ShapeMesh, TerrainImage, _nextx.TerrainImage, _nexty.TerrainImage, 0, null, 1, TerrainTextureImage, TileX, TileY, Zoom)
 	$TerrainMesh.mesh = ShapeMesh
+	GenerateCollision()
 	
