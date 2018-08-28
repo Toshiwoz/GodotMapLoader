@@ -60,7 +60,7 @@ static func GetMaxMinHight(_img = Image.new()):
 	return MaxMin
 
 # This is the formula that MapBox provides to convert HM image into meters
-func GetHeightFromPxl(_pxl):
+static func GetHeightFromPxl(_pxl):
 	return -10000 + ((_pxl.r8 * 65536 + _pxl.g8 * 256 + _pxl.b8) * 0.1)
 
 func GetImageSubset(_image, _divideinto, _subset, _addpixel = Vector2(0, 0)):
@@ -97,13 +97,15 @@ func GenerateHeightMap(_hm_img = Image.new()):
 		var heigth = TerrainImage.get_height()
 		var rangeX = range(width)
 		var rangeY = range(heigth)
+		var pxl = Color()
+		var altitude = 0.0
 		hm.resize(heigth)
-		var x_arr = Array()
-		x_arr.resize(width)
 		for y in rangeY:
+			var x_arr = Array()
+			x_arr.resize(width)
 			for x in rangeX:
-				var pxl = TerrainImage.get_pixel(x, y)
-				var altitude = -10000 + ((pxl.r8 * 65536 + pxl.g8 * 256 + pxl.b8) * 0.1)
+				pxl = TerrainImage.get_pixel(x, y)
+				altitude = -10000 + ((pxl.r8 * 65536 + pxl.g8 * 256 + pxl.b8) * 0.1)
 				x_arr[x] =  altitude
 				if altitude < minh:
 					minh = altitude

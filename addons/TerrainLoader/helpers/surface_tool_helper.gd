@@ -22,34 +22,35 @@ func add_fan_element(_vtx, _uv, _col = null):
 		
 func add_single_square(_heights, sq_y, sq_x, _mt_pxl, _offset = 0.0, to_mesh = false):
 	var sq_heights = Array()
-	var sq_y_divide_by = (sq_y+1) * divide_by
-	var sq_x_divide_by = (sq_x+1) * divide_by
-	var v_y_divide_by = 0.0
-	var v_x_divide_by = 0.0
+	var y_heights_start = (sq_y) * divide_by
+	var x_heights_start = (sq_x) * divide_by
+	var y_heights_index = 0
+	var x_height_index = 0
 	var h_y_half = 0.0
 	var h_x_half = 0.0
-	sq_heights.resize(_heights.size()/2/divide_by)
+	sq_heights.resize(_heights.size()/divide_by)
 	#parsing each height belonging to the square
 	for h_y in range(0,_heights.size()/divide_by,2):
 		h_y_half = h_y/2
+		y_heights_index = y_heights_start + h_y
 		sq_heights[h_y_half] = Array()
-		sq_heights[h_y_half].resize(_heights[h_y].size()/2/divide_by)
+		sq_heights[h_y_half].resize(_heights[h_y].size()/divide_by)
 		for h_x in range(0,_heights[h_y].size()/divide_by,2):
 			h_x_half = h_x/2
-			v_y_divide_by = sq_y_divide_by + h_y
-			v_x_divide_by = sq_x_divide_by + h_x
+			x_height_index = x_heights_start + h_x
+#			print([y_heights_index, x_height_index])
 			sq_heights[h_y_half][h_x_half] = Array()
-			#creating the triangle fan
-			sq_heights[h_y_half][h_x_half].append(Vector3((v_x_divide_by + 1)*_mt_pxl, _heights[v_y_divide_by + 1][v_x_divide_by + 1] - _offset, (v_y_divide_by + 1)*_mt_pxl))
-			sq_heights[h_y_half][h_x_half].append(Vector3((v_x_divide_by + 0)*_mt_pxl, _heights[v_y_divide_by + 0][v_x_divide_by + 0] - _offset, (v_y_divide_by + 0)*_mt_pxl))
-			sq_heights[h_y_half][h_x_half].append(Vector3((v_x_divide_by + 1)*_mt_pxl, _heights[v_y_divide_by + 0][v_x_divide_by + 1] - _offset, (v_y_divide_by + 0)*_mt_pxl))
-			sq_heights[h_y_half][h_x_half].append(Vector3((v_x_divide_by + 2)*_mt_pxl, _heights[v_y_divide_by + 0][v_x_divide_by + 2] - _offset, (v_y_divide_by + 0)*_mt_pxl))
-			sq_heights[h_y_half][h_x_half].append(Vector3((v_x_divide_by + 2)*_mt_pxl, _heights[v_y_divide_by + 1][v_x_divide_by + 2] - _offset, (v_y_divide_by + 1)*_mt_pxl))
-			sq_heights[h_y_half][h_x_half].append(Vector3((v_x_divide_by + 2)*_mt_pxl, _heights[v_y_divide_by + 2][v_x_divide_by + 2] - _offset, (v_y_divide_by + 2)*_mt_pxl))
-			sq_heights[h_y_half][h_x_half].append(Vector3((v_x_divide_by + 1)*_mt_pxl, _heights[v_y_divide_by + 2][v_x_divide_by + 1] - _offset, (v_y_divide_by + 2)*_mt_pxl))
-			sq_heights[h_y_half][h_x_half].append(Vector3((v_x_divide_by + 0)*_mt_pxl, _heights[v_y_divide_by + 2][v_x_divide_by + 0] - _offset, (v_y_divide_by + 2)*_mt_pxl))
-			sq_heights[h_y_half][h_x_half].append(Vector3((v_x_divide_by + 0)*_mt_pxl, _heights[v_y_divide_by + 1][v_x_divide_by + 0] - _offset, (v_y_divide_by + 1)*_mt_pxl))
-			sq_heights[h_y_half][h_x_half].append(Vector3((v_x_divide_by + 0)*_mt_pxl, _heights[v_y_divide_by + 0][v_x_divide_by + 0] - _offset, (v_y_divide_by + 0)*_mt_pxl))
+			#creating Addithe triangle fan
+			sq_heights[h_y_half][h_x_half].append(Vector3((x_height_index + 1)*_mt_pxl, _heights[y_heights_index + 1][x_height_index + 1] - _offset, (y_heights_index + 1)*_mt_pxl))
+			sq_heights[h_y_half][h_x_half].append(Vector3((x_height_index + 0)*_mt_pxl, _heights[y_heights_index + 0][x_height_index + 0] - _offset, (y_heights_index + 0)*_mt_pxl))
+			sq_heights[h_y_half][h_x_half].append(Vector3((x_height_index + 1)*_mt_pxl, _heights[y_heights_index + 0][x_height_index + 1] - _offset, (y_heights_index + 0)*_mt_pxl))
+			sq_heights[h_y_half][h_x_half].append(Vector3((x_height_index + 2)*_mt_pxl, _heights[y_heights_index + 0][x_height_index + 2] - _offset, (y_heights_index + 0)*_mt_pxl))
+			sq_heights[h_y_half][h_x_half].append(Vector3((x_height_index + 2)*_mt_pxl, _heights[y_heights_index + 1][x_height_index + 2] - _offset, (y_heights_index + 1)*_mt_pxl))
+			sq_heights[h_y_half][h_x_half].append(Vector3((x_height_index + 2)*_mt_pxl, _heights[y_heights_index + 2][x_height_index + 2] - _offset, (y_heights_index + 2)*_mt_pxl))
+			sq_heights[h_y_half][h_x_half].append(Vector3((x_height_index + 1)*_mt_pxl, _heights[y_heights_index + 2][x_height_index + 1] - _offset, (y_heights_index + 2)*_mt_pxl))
+			sq_heights[h_y_half][h_x_half].append(Vector3((x_height_index + 0)*_mt_pxl, _heights[y_heights_index + 2][x_height_index + 0] - _offset, (y_heights_index + 2)*_mt_pxl))
+			sq_heights[h_y_half][h_x_half].append(Vector3((x_height_index + 0)*_mt_pxl, _heights[y_heights_index + 1][x_height_index + 0] - _offset, (y_heights_index + 1)*_mt_pxl))
+			sq_heights[h_y_half][h_x_half].append(Vector3((x_height_index + 0)*_mt_pxl, _heights[y_heights_index + 0][x_height_index + 0] - _offset, (y_heights_index + 0)*_mt_pxl))
 			if to_mesh:
 				add_triangle_fan(sq_heights[h_y_half][h_x_half])
 	return sq_heights
@@ -60,6 +61,8 @@ func add_single_square(_heights, sq_y, sq_x, _mt_pxl, _offset = 0.0, to_mesh = f
 #	Ie. 8, 16, 32, 64, etc.
 func _heights_to_squares_array(_heights = Array(), _divide_by = 8, _mtpxl = 1.0, _offset = 0.0, to_mesh = false):
 	var startt = float(OS.get_ticks_msec())
+	tile_mesh = ArrayMesh.new()
+	clear()
 	divide_by = _divide_by
 	vertex_distance = _mtpxl
 	heights_squares = Array()
@@ -73,9 +76,16 @@ func _heights_to_squares_array(_heights = Array(), _divide_by = 8, _mtpxl = 1.0,
 		heights_squares[sq_y] = Array()
 		heights_squares[sq_y].resize(_divide_by)
 		for sq_x in range(_divide_by):
-			heights_squares[sq_y][sq_x] = Array()
 			#append the fan to the squares array
-			heights_squares[sq_y][sq_x].append(add_single_square(_heights, sq_y, sq_x, _mtpxl, _offset, to_mesh))
+			heights_squares[sq_y][sq_x] = add_single_square(_heights, sq_y, sq_x, _mtpxl, _offset, to_mesh)
+			if to_mesh:
+				var mesh_array = Array()
+				mesh_array.resize(ArrayMesh.ARRAY_MAX)
+				mesh_array[ArrayMesh.ARRAY_VERTEX] = heights_squares[sq_y][sq_x]
+				tile_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,  mesh_array)
+				var position = Transform()
+				position.origin = Vector3(sq_x*_mtpxl, 0, sq_y*_mtpxl)
+				append_from(tile_mesh, tile_mesh.get_surface_count()-1, position)
 	if to_mesh:
 		generate_normals()
 		tile_mesh = commit(tile_mesh)

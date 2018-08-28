@@ -4,3 +4,4 @@
 /*.tmp
 !/addons/TerrainLoader/**
 /addons/*
+!/addona/TerrainLoader/*/*
