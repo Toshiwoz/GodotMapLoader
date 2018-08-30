@@ -29,12 +29,11 @@ func add_single_square(_heights, sq_y, sq_x, _mt_pxl, _divide_by, _offset = 0.0)
 	# half size is used to center the geometry
 	var half_y_size = sq_heights_y_size*_divide_by*_mt_pxl/2
 	var half_x_size = sq_heights_x_size*_divide_by*_mt_pxl/2
-	var y_heights_start = sq_y * heights_y_size- sq_y
-	var x_heights_start = sq_x * heights_x_size - sq_x
+	var y_heights_start = sq_y * heights_y_size - y_sq_not_first
+	var x_heights_start = sq_x * heights_x_size - x_sq_not_first
 	var y_heights_index = 0
 	var x_height_index = 0
 	var index = 0
-	var indices_index = 0
 	sq_heights.resize((sq_heights_y_size)*(sq_heights_x_size))
 	sq_normals.resize((sq_heights_y_size)*(sq_heights_x_size))
 	sq_uvs.resize((sq_heights_y_size)*(sq_heights_x_size))
@@ -47,6 +46,9 @@ func add_single_square(_heights, sq_y, sq_x, _mt_pxl, _divide_by, _offset = 0.0)
 			#creating the vertex belonging to the MeshArray surface (the mesh is divided into _divide_by * _divide_by surfaces)
 			sq_heights[index] = Vector3((x_height_index)*_mt_pxl-half_x_size, _heights[y_heights_index][x_height_index] - _offset, (y_heights_index)*_mt_pxl-half_y_size)
 		
+			#Create the UVS, would be great if it could be placed only on corners of single surface
+			sq_uvs[index] = Vector3(float(x_height_index)/float(_heights.size()), float(y_heights_index)/float(_heights[sq_y].size()), 0)
+
 #			# Normals need to be calculated based on surrounding planes
 			var normal_top_left = null
 			var normal_top_right = null
@@ -87,22 +89,6 @@ func add_single_square(_heights, sq_y, sq_x, _mt_pxl, _divide_by, _offset = 0.0)
 				sq_normals[index] = normal_top_left.cross(normal_bottom_left)
 			else:
 				sq_normals[index] = normal_top_left.cross(normal_top_right).cross(normal_bottom_left.cross(normal_bottom_right))
-			
-			#Create non empty UV only if on corners
-			if h_y == 0 && h_x == 0:
-				sq_uvs[index] = Vector3(x_height_index/_heights[sq_y].size(), 0, y_heights_index/_heights.size())
-#				print(["tile",sq_y,sq_x,"corner 00",y_heights_index, x_height_index])
-			elif h_y == sq_heights_y_size-1  && h_x == 0:
-				sq_uvs[index] = Vector3(x_height_index/_heights[sq_y].size(), 0, y_heights_index/_heights.size())
-#				print(["corner 10",y_heights_index, x_height_index])
-			elif h_y == 0  && h_x == sq_heights_x_size-1:
-				sq_uvs[index] = Vector3(x_height_index/_heights[sq_y].size(), 0, y_heights_index/_heights.size())
-#				print(["corner 01",y_heights_index, x_height_index])
-			elif h_y == sq_heights_y_size-1  && h_x == sq_heights_x_size-1:
-				sq_uvs[index] = Vector3(x_height_index/_heights[sq_y].size(), 0, y_heights_index/_heights.size())
-#				print(["corner 11",y_heights_index, x_height_index])
-			else:
-				sq_uvs[index] = Vector3()
 				
 			if h_y > 0 && h_x > 0:
 				# Generate the vertices index
@@ -110,12 +96,12 @@ func add_single_square(_heights, sq_y, sq_x, _mt_pxl, _divide_by, _offset = 0.0)
 				# 1-2			  2
 				# |/ 	then	 /|
 				# 3  	    	1-3
-				sq_indices.append((h_y-1) * sq_heights_y_size + (h_x-1))
-				sq_indices.append((h_y-1) * sq_heights_y_size + (h_x))
-				sq_indices.append((h_y) * sq_heights_y_size + (h_x-1))
-				sq_indices.append((h_y) * sq_heights_y_size + (h_x-1))
-				sq_indices.append((h_y-1) * sq_heights_y_size + (h_x))
-				sq_indices.append((h_y) * sq_heights_y_size + (h_x))
+				sq_indices.append((h_y-1) * (sq_heights_y_size+1-y_sq_not_first) + (h_x-1))
+				sq_indices.append((h_y-1) * (sq_heights_y_size+1-y_sq_not_first) + (h_x))
+				sq_indices.append((h_y) * (sq_heights_y_size+1-y_sq_not_first) + (h_x-1))
+				sq_indices.append((h_y) * (sq_heights_y_size+1-y_sq_not_first) + (h_x-1))
+				sq_indices.append((h_y-1) * (sq_heights_y_size+1-y_sq_not_first) + (h_x))
+				sq_indices.append((h_y) * (sq_heights_y_size+1-y_sq_not_first) + (h_x))
 				
 			index += 1
 	return {heights=sq_heights, normals=sq_normals, indices=sq_indices, uv=sq_uvs}
