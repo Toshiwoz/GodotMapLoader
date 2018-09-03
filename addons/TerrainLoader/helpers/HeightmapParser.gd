@@ -122,7 +122,7 @@ func GenerateHeightMap(_hm_img = Image.new()):
 
 func createMesh(ht, total_size = 0, height_multiplier = 1, Zoom = 1, _subset = 1, _divideinto = 4, _trimheight = false, _mesh_path = null):
 	if _mesh_path != null:
-		var _stored_mesh = ResourceLoader(_mesh_path)
+		var _stored_mesh = load(_mesh_path)
 		if _stored_mesh != null:
 			return _stored_mesh
 	if ht.size() > 0:

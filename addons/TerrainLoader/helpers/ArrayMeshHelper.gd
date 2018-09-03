@@ -27,8 +27,8 @@ func add_single_square(_heights, sq_y, sq_x, _mt_pxl, _divide_by, _offset = 0.0)
 	var heights_y_size = _heights.size()/_divide_by
 	var heights_x_size = _heights[sq_y].size()/_divide_by
 	# half size is used to center the geometry
-	var half_y_size = sq_heights_y_size*_divide_by*_mt_pxl/2
-	var half_x_size = sq_heights_x_size*_divide_by*_mt_pxl/2
+	var half_y_size = (sq_heights_y_size - y_sq_not_first)*_divide_by*_mt_pxl/2
+	var half_x_size = (sq_heights_x_size - x_sq_not_first)*_divide_by*_mt_pxl/2
 	var y_heights_start = sq_y * heights_y_size - y_sq_not_first
 	var x_heights_start = sq_x * heights_x_size - x_sq_not_first
 	var y_heights_index = 0
@@ -47,61 +47,37 @@ func add_single_square(_heights, sq_y, sq_x, _mt_pxl, _divide_by, _offset = 0.0)
 			sq_heights[index] = Vector3((x_height_index)*_mt_pxl-half_x_size, _heights[y_heights_index][x_height_index] - _offset, (y_heights_index)*_mt_pxl-half_y_size)
 		
 			#Create the UVS, would be great if it could be placed only on corners of single surface
-			sq_uvs[index] = Vector3(float(x_height_index)/float(_heights.size()), float(y_heights_index)/float(_heights[sq_y].size()), 0)
+			sq_uvs[index] = Vector3(float(x_height_index)/float(_heights[sq_y].size()), float(y_heights_index)/float(_heights.size()), 0)
 
-#			# Normals need to be calculated based on surrounding planes
-			var normal_top_left = null
-			var normal_top_right = null
-			var normal_bottom_left = null
-			var normal_bottom_right = null
-			if h_x > 0 && h_y > 0:
-				normal_top_left = get_triangle_normal(  sq_heights[(h_y) * (heights_y_size) + (h_x-1)]
-														, sq_heights[(h_y-1) * (heights_y_size) + (h_x)]
-														, sq_heights[(h_y) * (heights_y_size) + (h_x)])
-			if h_x < sq_heights_x_size-1-x_sq_not_first && h_y > 0:
-				normal_top_right = get_triangle_normal(  sq_heights[(h_y) * (heights_y_size) + (h_x)]
-														, sq_heights[(h_y-1) * (heights_y_size) + (h_x)]
-														, sq_heights[(h_y) * (heights_y_size) + (h_x+1)])
-			if h_y < sq_heights_y_size-1-y_sq_not_first && h_x > 0:
-				normal_bottom_left = get_triangle_normal(  sq_heights[(h_y) * (heights_y_size) + (h_x)]
-														, sq_heights[(h_y+1) * (heights_y_size) + (h_x)]
-														, sq_heights[(h_y) * (heights_y_size) + (h_x-1)])
-			if h_y < sq_heights_y_size-1-y_sq_not_first && h_x < sq_heights_x_size-1-x_sq_not_first:
-				normal_bottom_right = get_triangle_normal(  sq_heights[(h_y) * (heights_y_size) + (h_x)]
-														, sq_heights[(h_y) * (heights_y_size) + (h_x+1)]
-														, sq_heights[(h_y+1) * (heights_y_size) + (h_x)])
-			if normal_top_left == null && normal_top_right == null && normal_bottom_left == null && normal_bottom_right != null:
-				sq_normals[index] = normal_bottom_right
-			elif normal_top_left == null && normal_top_right == null && normal_bottom_left != null && normal_bottom_right == null:
-				sq_normals[index] = normal_bottom_left
-			elif normal_top_left != null && normal_top_right == null && normal_bottom_left == null && normal_bottom_right == null:
-				sq_normals[index] = normal_top_left
-			elif normal_top_left == null && normal_top_right != null && normal_bottom_left == null && normal_bottom_right == null:
-				sq_normals[index] = normal_top_right
-				
-			elif normal_top_left != null && normal_top_right != null && normal_bottom_left == null && normal_bottom_right == null:
-				sq_normals[index] = normal_top_left.cross(normal_top_right)
-			elif normal_top_left == null && normal_top_right != null && normal_bottom_left == null && normal_bottom_right != null:
-				sq_normals[index] = normal_top_right.cross(normal_bottom_right)
-			elif normal_top_left == null && normal_top_right == null && normal_bottom_left != null && normal_bottom_right != null:
-				sq_normals[index] = normal_bottom_left.cross(normal_bottom_right)
-			elif normal_top_left != null && normal_top_right == null && normal_bottom_left != null && normal_bottom_right == null:
-				sq_normals[index] = normal_top_left.cross(normal_bottom_left)
-			else:
-				sq_normals[index] = normal_top_left.cross(normal_top_right).cross(normal_bottom_left.cross(normal_bottom_right))
-				
 			if h_y > 0 && h_x > 0:
 				# Generate the vertices index
 				# drawing 2 triangles as follows
 				# 1-2			  2
 				# |/ 	then	 /|
 				# 3  	    	1-3
-				sq_indices.append((h_y-1) * (sq_heights_y_size+1-y_sq_not_first) + (h_x-1))
-				sq_indices.append((h_y-1) * (sq_heights_y_size+1-y_sq_not_first) + (h_x))
-				sq_indices.append((h_y) * (sq_heights_y_size+1-y_sq_not_first) + (h_x-1))
-				sq_indices.append((h_y) * (sq_heights_y_size+1-y_sq_not_first) + (h_x-1))
-				sq_indices.append((h_y-1) * (sq_heights_y_size+1-y_sq_not_first) + (h_x))
-				sq_indices.append((h_y) * (sq_heights_y_size+1-y_sq_not_first) + (h_x))
+				sq_indices.append((h_y-1) * (sq_heights_x_size) + (h_x-1))
+				sq_indices.append((h_y-1) * (sq_heights_x_size) + (h_x))
+				sq_indices.append((h_y) * (sq_heights_x_size) + (h_x-1))
+				sq_indices.append((h_y) * (sq_heights_x_size) + (h_x-1))
+				sq_indices.append((h_y-1) * (sq_heights_x_size) + (h_x))
+				sq_indices.append((h_y) * (sq_heights_x_size) + (h_x))
+			
+			if h_y == 0 && h_x == 0:
+				sq_normals[index] = Plane(sq_heights[(h_y) * (sq_heights_x_size) + (h_x)],
+				sq_heights[(h_y) * (sq_heights_x_size) + (h_x+1)],
+				sq_heights[(h_y+1) * (sq_heights_x_size) + (h_x)]).normal
+			elif h_y > 0 && h_x == 0:
+				sq_normals[index] = Plane(sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x+1)],
+				sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x+1)],
+				sq_heights[(h_y) * (sq_heights_x_size) + (h_x)]).normal
+			elif h_y == 0 && h_x > 0:
+				sq_normals[index] = Plane(sq_heights[(h_y) * (sq_heights_x_size) + (h_x-1)],
+				sq_heights[(h_y) * (sq_heights_x_size) + (h_x)],
+				sq_heights[(h_y+1) * (sq_heights_x_size) + (h_x-1)]).normal
+			else:
+				sq_normals[index] = Plane(sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x-1)],
+				sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x)],
+				sq_heights[(h_y) * (sq_heights_x_size) + (h_x-1)]).normal
 				
 			index += 1
 	return {heights=sq_heights, normals=sq_normals, indices=sq_indices, uv=sq_uvs}
@@ -136,52 +112,3 @@ func heights_to_squares_array(_heights = Array(), _mat = Material.new(), _divide
 	var endtt = float(OS.get_ticks_msec())
 	print("Squares of heights generated in %.2f seconds" % ((endtt - startt)/1000))
 	return heights_squares
-
-#func HeightMapToRectangle(_hm = Array(), _divide_by = 8, _mat = SpatialMaterial.new()):
-#	if _hm.size() > 0:
-#		var fan_array = PoolVector3Array()
-#		var fan_normal_array = PoolVector3Array()
-#		var fan_index_array = PoolIntArray()
-#		var array_mesh = Array()
-#		array_mesh.resize(Mesh.ARRAY_MAX)
-#		var height = _hm.size()
-#		var width = _hm[0].size()
-#		print("Height %d, Width %d" % [height, width])
-#
-#		var rangey = range(2, height, 2)
-#		var rangex = range(2, width, 2)
-#
-#		for y in rangey:
-#			for x in rangex:
-#				fan_array.resize(0)
-#				fan_index_array.resize(0)
-#				fan_normal_array.resize(0)
-#				fan_index_array.append(_hm[y][x+1])
-#				fan_index_array.append(Vector3(x, _hm[y][x], y))
-#				fan_index_array.append(Vector3(x+1, _hm[y][x+1-x_limiter1], y))
-#				fan_index_array.append(Vector3(x+2, _hm[y][x+2-x_limiter2], y))
-#				fan_index_array.append(Vector3(x+2, _hm[y+1-y_limiter1][x+2-x_limiter2], y+1))
-#				fan_index_array.append(Vector3(x+2, _hm[y+2-y_limiter2][x+2-x_limiter2], y+2))
-#				fan_index_array.append(Vector3(x+1, _hm[y+2-y_limiter2][x+1-x_limiter1], y+2))
-#				fan_index_array.append(Vector3(x, _hm[y+2-y_limiter2][x], y+2))
-#				fan_index_array.append(Vector3(x, _hm[y+1-y_limiter1][x], y+1))
-#				fan_index_array.append(Vector3(x, _hm[y][x], y))
-#
-#				fan_normal_array.append(Vector3(0, 1, 0))
-#				fan_normal_array.append(Vector3(0, 1, 0))
-#				fan_normal_array.append(Vector3(0, 1, 0))
-#				fan_normal_array.append(Vector3(0, 1, 0))
-#				fan_normal_array.append(Vector3(0, 1, 0))
-#				fan_normal_array.append(Vector3(0, 1, 0))
-#				fan_normal_array.append(Vector3(0, 1, 0))
-#				fan_normal_array.append(Vector3(0, 1, 0))
-#				fan_normal_array.append(Vector3(0, 1, 0))
-#				fan_normal_array.append(Vector3(0, 1, 0))
-##				print("Fan Size: %d" % [fan_array.size()])
-#				array_mesh[ARRAY_VERTEX] = fan_array
-#				array_mesh[ARRAY_NORMAL] = fan_normal_array
-#				array_mesh[ARRAY_INDEX] = fan_index_array
-#				add_surface_from_arrays(PRIMITIVE_TRIANGLE_FAN, array_mesh)
-#				var surfidx = get_surface_count()-1
-#				surface_set_name(surfidx, var2str(y)+";"+var2str(x))
-#				surface_set_material(surfidx, _mat)
