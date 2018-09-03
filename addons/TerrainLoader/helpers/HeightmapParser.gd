@@ -87,8 +87,8 @@ func SetMaterialTexture(_txtr_img):
 #	https://www.mapbox.com/help/access-elevation-data/#mapbox-terrain-rgb
 func GenerateHeightMap(_hm_img = Image.new()):
 	var hm = Array()
-	var minh = 999999
-	var maxh = -1
+	var minh = 999999.0
+	var maxh = -1.0
 	if !_hm_img.is_empty():
 		var startt = float(OS.get_ticks_msec())
 		var TerrainImage = _hm_img
@@ -105,7 +105,7 @@ func GenerateHeightMap(_hm_img = Image.new()):
 			x_arr.resize(width)
 			for x in rangeX:
 				pxl = TerrainImage.get_pixel(x, y)
-				altitude = -10000 + ((pxl.r8 * 65536 + pxl.g8 * 256 + pxl.b8) * 0.1)
+				altitude = -10000.0 + ((pxl.r8 * 65536.0 + pxl.g8 * 256.0 + pxl.b8) * 0.1)
 				x_arr[x] =  altitude
 				if altitude < minh:
 					minh = altitude

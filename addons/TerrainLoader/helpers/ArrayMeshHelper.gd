@@ -62,22 +62,18 @@ func add_single_square(_heights, sq_y, sq_x, _mt_pxl, _divide_by, _offset = 0.0)
 				sq_indices.append((h_y-1) * (sq_heights_x_size) + (h_x))
 				sq_indices.append((h_y) * (sq_heights_x_size) + (h_x))
 			
-			if h_y == 0 && h_x == 0:
-				sq_normals[index] = Plane(sq_heights[(h_y) * (sq_heights_x_size) + (h_x)],
-				sq_heights[(h_y) * (sq_heights_x_size) + (h_x+1)],
-				sq_heights[(h_y+1) * (sq_heights_x_size) + (h_x)]).normal
-			elif h_y > 0 && h_x == 0:
-				sq_normals[index] = Plane(sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x+1)],
-				sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x+1)],
-				sq_heights[(h_y) * (sq_heights_x_size) + (h_x)]).normal
-			elif h_y == 0 && h_x > 0:
-				sq_normals[index] = Plane(sq_heights[(h_y) * (sq_heights_x_size) + (h_x-1)],
-				sq_heights[(h_y) * (sq_heights_x_size) + (h_x)],
-				sq_heights[(h_y+1) * (sq_heights_x_size) + (h_x-1)]).normal
-			else:
 				sq_normals[index] = Plane(sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x-1)],
 				sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x)],
 				sq_heights[(h_y) * (sq_heights_x_size) + (h_x-1)]).normal
+				
+				if h_y == 1 && h_x == 1:
+					sq_normals[0] = Plane(sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x-1)],
+					sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x)],
+					sq_heights[(h_y) * (sq_heights_x_size) + (h_x)]).normal
+				elif h_y == 1 && h_x > 1:
+					sq_normals[sq_heights_x_size + h_x] = Plane(sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x-1)],
+					sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x)],
+					sq_heights[(h_y) * (sq_heights_x_size) + (h_x-1)]).normal
 				
 			index += 1
 	return {heights=sq_heights, normals=sq_normals, indices=sq_indices, uv=sq_uvs}
@@ -112,3 +108,14 @@ func heights_to_squares_array(_heights = Array(), _mat = Material.new(), _divide
 	var endtt = float(OS.get_ticks_msec())
 	print("Squares of heights generated in %.2f seconds" % ((endtt - startt)/1000))
 	return heights_squares
+	
+func _array_to_normalmap(_normals = PoolVector3Array(), _width = 256):
+	var nmap = Image.new()
+	nmap.create(_width, _normals.size()/_width, false, Image.FORMAT_RG8)
+	nmap.lock()
+	for hy in range(0,_normals.size()/_width):
+		for hx in range(0,_width):
+			nmap.set_pixel(hx, hy, Color(_normals[hy*_width+hx].x,_normals[hy*_width+hx].y,0.0))
+	nmap.unlock()
+	return nmap
+	
