@@ -1,36 +1,64 @@
 tool
 extends ArrayMesh
+export(Array) var heights setget _set_heights
 
-func get_triangle_normal(a, b, c):
-    # find the surface normal given 3 vertices
-    var side1 = b - a
-    var side2 = c - a
-    var normal = side1.cross(side2)
-    return normal
+# The number of times a tile is subdivided
+# it should always be in form of 2^x
+# i.e. 2, 4, 8, 16, 32, etc.
+export(int) var divide_by = 8
+
+# the size of a single square
+export(int) var heights_y_size = 0
+export(int) var heights_x_size = 0
+
+func _set_heights(_newval):
+	heights = _newval
+	heights_y_size = heights.size()/divide_by
+	if heights.size() > 0:
+		heights_x_size = heights[0].size()/divide_by
 	
+func _get_square_size(_sqy, _sqx):
+	var y_sq_not_first = 0
+	var x_sq_not_first = 0
+	if _sqy > 0:
+		y_sq_not_first = 1
+	if _sqx > 0:
+		x_sq_not_first = 1
+		
+	return {y = heights_y_size + y_sq_not_first, x = heights_x_size + x_sq_not_first}
+
+func get_vertex_from_yx_coordinates(_sqy, _sqx, _y, _x, _divide_by):
+	var vertices = surface_get_arrays(_sqy * _divide_by + _sqx)[ArrayMesh.ARRAY_VERTEX]
+	return vertices[_y * _get_square_size(_sqy, _sqx).x + _x]
+
+#	It adds a single square to the tile
+#	_heights	is an array of arrays containing the heights of the whole tile
+#				heights are represented in meters
+#	_sq_y		the y coordinate of the single square
+#	_sq_x		the x coordinate of the single square
+#	_mt_pxl		Meters per pixel
+#	_divide_by	determines the size of the single square (a mesh surface)
+#				_divide_by = 4 creates a 4x4 set of surfaces
+#	_offset		the minimum height of the whole set of surfaces,
+#				it simply subtracts every height
 func add_single_square(_heights, sq_y, sq_x, _mt_pxl, _divide_by, _offset = 0.0):
 	var sq_heights = PoolVector3Array()
 	var sq_normals = PoolVector3Array()
 	var sq_uvs = PoolVector3Array()
 	var sq_indices = PoolIntArray()
 	# if not first square we have to iterate from the previous pixels
-	# so that each square is correctly joined
-	var y_sq_not_first = 0
-	var x_sq_not_first = 0
-	if sq_y > 0:
-		y_sq_not_first = 1
-	if sq_x > 0:
-		x_sq_not_first = 1
-		
-	var sq_heights_y_size = _heights.size()/_divide_by + y_sq_not_first
-	var sq_heights_x_size = _heights[sq_y].size()/_divide_by + x_sq_not_first
-	var heights_y_size = _heights.size()/_divide_by
-	var heights_x_size = _heights[sq_y].size()/_divide_by
+	# so that each square is correctly joined		
+	var sq_heights_y_size = _get_square_size(sq_y, sq_x).y
+	var sq_heights_x_size = _get_square_size(sq_y, sq_x).x
+	# I need to pre store square sizes of adjacent surfaces
+	var sq_11 = _get_square_size(sq_y-1, sq_x-1)
+	var sq_01 = _get_square_size(sq_y, sq_x-1)
+	var sq_10 = _get_square_size(sq_y-1, sq_x)
 	# half size is used to center the geometry
-	var half_y_size = (sq_heights_y_size - y_sq_not_first)*_divide_by*_mt_pxl/2
-	var half_x_size = (sq_heights_x_size - x_sq_not_first)*_divide_by*_mt_pxl/2
-	var y_heights_start = sq_y * heights_y_size - y_sq_not_first
-	var x_heights_start = sq_x * heights_x_size - x_sq_not_first
+	var half_y_size = heights_y_size*_divide_by*_mt_pxl/2
+	var half_x_size = heights_x_size*_divide_by*_mt_pxl/2
+	var y_heights_start = sq_y * heights_y_size - (sq_heights_y_size - heights_y_size)
+	var x_heights_start = sq_x * heights_x_size - (sq_heights_x_size - heights_x_size)
 	var y_heights_index = 0
 	var x_height_index = 0
 	var index = 0
@@ -66,14 +94,43 @@ func add_single_square(_heights, sq_y, sq_x, _mt_pxl, _divide_by, _offset = 0.0)
 				sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x)],
 				sq_heights[(h_y) * (sq_heights_x_size) + (h_x-1)]).normal
 				
+				# here we manage normals on top and left side of the tile
+				# so that it merges nicely with the previous tile(s)
+				var vtx1 = sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x-1)]
+				var vtx2 = Vector3()
+				var vtx3 = Vector3()
 				if h_y == 1 && h_x == 1:
-					sq_normals[0] = Plane(sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x-1)],
-					sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x)],
-					sq_heights[(h_y) * (sq_heights_x_size) + (h_x)]).normal
+					vtx2 = sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x)]
+					vtx3 = sq_heights[(h_y) * (sq_heights_x_size) + (h_x)]
+					if sq_y > 0 && sq_x > 0:
+						vtx1 = get_vertex_from_yx_coordinates(sq_y-1, sq_x-1, sq_11.y -1, sq_11.x -2, _divide_by)
+						vtx2 = get_vertex_from_yx_coordinates(sq_y-1, sq_x-1, sq_11.y -2, sq_11.x -1, _divide_by)
+						vtx3 = sq_heights[0]
+					elif sq_y > 0 && sq_x == 0:
+						vtx1 = get_vertex_from_yx_coordinates(sq_y-1, sq_x, sq_10.y -2, h_x-1, _divide_by)
+						vtx2 = get_vertex_from_yx_coordinates(sq_y-1, sq_x, sq_10.y -2, h_x, _divide_by)
+						vtx3 = sq_heights[0]
+					elif sq_y == 0 && sq_x > 0:
+						vtx1 = get_vertex_from_yx_coordinates(sq_y, sq_x-1, h_y-1, sq_01.x -2, _divide_by)
+						vtx2 = get_vertex_from_yx_coordinates(sq_y, sq_x-1, h_y-1, sq_01.x -1, _divide_by)
+						vtx3 = sq_heights[0]
+						
+					sq_normals[0] = Plane(vtx1, vtx2, vtx3).normal
+					
 				elif h_y == 1 && h_x > 1:
-					sq_normals[sq_heights_x_size + h_x] = Plane(sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x-1)],
-					sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x)],
-					sq_heights[(h_y) * (sq_heights_x_size) + (h_x-1)]).normal
+					vtx2 = sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x)]
+					vtx3 = sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x-1)]
+					if sq_y > 0:
+						vtx1 = get_vertex_from_yx_coordinates(sq_y-1, sq_x, sq_10.y -2, h_x-1, _divide_by)
+						vtx2 = get_vertex_from_yx_coordinates(sq_y-1, sq_x, sq_10.y -2, h_x, _divide_by)
+					sq_normals[h_x] = Plane(vtx1, vtx2, vtx3).normal
+					
+				elif h_y > 1 && h_x == 1:
+					if sq_x > 0:
+						vtx1 = get_vertex_from_yx_coordinates(sq_y, sq_x-1, h_y-1, sq_01.x -2, _divide_by)
+						vtx2 = get_vertex_from_yx_coordinates(sq_y, sq_x-1, h_y-2, sq_01.x -2, _divide_by)
+					vtx3 = sq_heights[(h_y-1) * (sq_heights_x_size)]
+					sq_normals[(h_y-1) * (sq_heights_x_size)] = Plane(vtx1, vtx2, vtx3).normal
 				
 			index += 1
 	return {heights=sq_heights, normals=sq_normals, indices=sq_indices, uv=sq_uvs}
@@ -84,8 +141,15 @@ func add_single_square(_heights, sq_y, sq_x, _mt_pxl, _divide_by, _offset = 0.0)
 #	Ie. 8, 16, 32, 64, etc.
 func heights_to_squares_array(_heights = Array(), _mat = Material.new(), _divide_by = 8, _mtpxl = 1.0, _offset = 0.0):
 	var startt = float(OS.get_ticks_msec())
+	# Clean up the previous mesh
 	while get_surface_count() > 0:
 		surface_remove(get_surface_count()-1)
+	# Passed to property so that is globally visible
+	# Always declare first the divide_by property
+	# as it is used to calculate the square size
+	# use self. as otherwise setget won't work
+	self.divide_by = _divide_by
+	self.heights = _heights
 	var heights_squares = Array()
 	heights_squares.resize(_divide_by)
 	#parsing each of the _divide_by squares
@@ -103,12 +167,14 @@ func heights_to_squares_array(_heights = Array(), _mat = Material.new(), _divide
 			mesh_array[ArrayMesh.ARRAY_TEX_UV] = heights_squares[sq_y][sq_x].uv
 			add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, mesh_array)
 			var surfidx = get_surface_count()-1
-			surface_set_name(surfidx, var2str(sq_y)+";"+var2str(sq_x))
+#			var surfname = var2str(sq_y)+"|"+var2str(sq_x)
 			surface_set_material(surfidx, _mat)
+#			surface_set_name(surfidx, surfname)
 	var endtt = float(OS.get_ticks_msec())
 	print("Squares of heights generated in %.2f seconds" % ((endtt - startt)/1000))
 	return heights_squares
-	
+
+#	this is not working yet
 func _array_to_normalmap(_normals = PoolVector3Array(), _width = 256):
 	var nmap = Image.new()
 	nmap.create(_width, _normals.size()/_width, false, Image.FORMAT_RG8)
