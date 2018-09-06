@@ -192,7 +192,7 @@ func generate_terrain_meshes():
 				if tile.Zoom == tilecoords.z && tile.TileX == tilecoords.x && tile.TileY == tilecoords.y:
 					print("replacing tile " + tile.name)
 					tile.free()
-			var subdivide = 1 #TerrainHeightMap.get_size().x / 256 #For now no subdivision
+			var subdivide = 4
 			var total_tiles = subdivide * subdivide
 			for tile_number in range(1, total_tiles + 1):
 				var terr_node = tsh.instance()

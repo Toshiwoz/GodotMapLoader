@@ -167,9 +167,9 @@ func heights_to_squares_array(_heights = Array(), _mat = Material.new(), _divide
 			mesh_array[ArrayMesh.ARRAY_TEX_UV] = heights_squares[sq_y][sq_x].uv
 			add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, mesh_array)
 			var surfidx = get_surface_count()-1
-#			var surfname = var2str(sq_y)+"|"+var2str(sq_x)
+			var surfname = var2str(sq_y)+"|"+var2str(sq_x)
 			surface_set_material(surfidx, _mat)
-#			surface_set_name(surfidx, surfname)
+			surface_set_name(surfidx, surfname)
 	var endtt = float(OS.get_ticks_msec())
 	print("Squares of heights generated in %.2f seconds" % ((endtt - startt)/1000))
 	return heights_squares

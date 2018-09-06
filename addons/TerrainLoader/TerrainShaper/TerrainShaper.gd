@@ -119,7 +119,7 @@ func SetMapShapeAndCollision(params = null):
 		else:
 			$TerrainMesh.mesh = hmTool.CreateMeshFromImage_sph(TerrainImage, TerrainTextureImage, Size, HeigthMultiplier, Zoom, TileX, TileY, Subset, DivideInto, false)
 		ShapeMesh = $TerrainMesh.mesh
-		HeightOffset = hmTool.max_min_height.minh
+		HeightOffset = hmTool.max_min_height.min_height
 		AltitudeMultiplier = hmTool.altitude_multiplier
 		var pos = $TerrainMesh.get_aabb()
 		pos.size.y = 0
