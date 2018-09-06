@@ -17,7 +17,10 @@ func _set_heights(_newval):
 	if heights.size() > 0:
 		heights_x_size = heights[0].size()/divide_by
 	
-func _get_square_size(_sqy, _sqx):
+func _get_square_with_size(_sqy, _sqx, _divide_by):
+	var vtxs = null
+	if get_surface_count() > (_sqy * _divide_by + _sqx) && (_sqy * _divide_by + _sqx) >= 0:
+		vtxs = surface_get_arrays(_sqy * _divide_by + _sqx)[ArrayMesh.ARRAY_VERTEX]
 	var y_sq_not_first = 0
 	var x_sq_not_first = 0
 	if _sqy > 0:
@@ -25,11 +28,10 @@ func _get_square_size(_sqy, _sqx):
 	if _sqx > 0:
 		x_sq_not_first = 1
 		
-	return {y = heights_y_size + y_sq_not_first, x = heights_x_size + x_sq_not_first}
+	return {vertices = vtxs, y = heights_y_size + y_sq_not_first, x = heights_x_size + x_sq_not_first}
 
-func get_vertex_from_yx_coordinates(_sqy, _sqx, _y, _x, _divide_by):
-	var vertices = surface_get_arrays(_sqy * _divide_by + _sqx)[ArrayMesh.ARRAY_VERTEX]
-	return vertices[_y * _get_square_size(_sqy, _sqx).x + _x]
+func get_vertex_from_yx_coordinates(_sqsz, _y, _x):
+	return _sqsz.vertices[_y * _sqsz.x + _x]
 
 #	It adds a single square to the tile
 #	_heights	is an array of arrays containing the heights of the whole tile
@@ -48,12 +50,12 @@ func add_single_square(_heights, sq_y, sq_x, _mt_pxl, _divide_by, _offset = 0.0)
 	var sq_indices = PoolIntArray()
 	# if not first square we have to iterate from the previous pixels
 	# so that each square is correctly joined		
-	var sq_heights_y_size = _get_square_size(sq_y, sq_x).y
-	var sq_heights_x_size = _get_square_size(sq_y, sq_x).x
+	var sq_heights_y_size = _get_square_with_size(sq_y, sq_x, _divide_by).y
+	var sq_heights_x_size = _get_square_with_size(sq_y, sq_x, _divide_by).x
 	# I need to pre store square sizes of adjacent surfaces
-	var sq_11 = _get_square_size(sq_y-1, sq_x-1)
-	var sq_01 = _get_square_size(sq_y, sq_x-1)
-	var sq_10 = _get_square_size(sq_y-1, sq_x)
+	var sq_11 = _get_square_with_size(sq_y-1, sq_x-1, _divide_by)
+	var sq_01 = _get_square_with_size(sq_y, sq_x-1, _divide_by)
+	var sq_10 = _get_square_with_size(sq_y-1, sq_x, _divide_by)
 	# half size is used to center the geometry
 	var half_y_size = heights_y_size*_divide_by*_mt_pxl/2
 	var half_x_size = heights_x_size*_divide_by*_mt_pxl/2
@@ -104,14 +106,14 @@ func add_single_square(_heights, sq_y, sq_x, _mt_pxl, _divide_by, _offset = 0.0)
 					vtx2 = sq_heights[1]
 					vtx3 = sq_heights[sq_heights_x_size]
 					if sq_y > 0 && sq_x > 0:
-						vtx1 = get_vertex_from_yx_coordinates(sq_y-1, sq_x-1, sq_11.y -1, sq_11.x -2, _divide_by)
-						vtx2 = get_vertex_from_yx_coordinates(sq_y-1, sq_x-1, sq_11.y -2, sq_11.x -1, _divide_by)
+						vtx1 = get_vertex_from_yx_coordinates(sq_11, sq_11.y -1, sq_11.x -2)
+						vtx2 = get_vertex_from_yx_coordinates(sq_11, sq_11.y -2, sq_11.x -1)
 					elif sq_y > 0 && sq_x == 0:
-						vtx1 = get_vertex_from_yx_coordinates(sq_y-1, sq_x, sq_10.y -2, h_x-1, _divide_by)
-						vtx2 = get_vertex_from_yx_coordinates(sq_y-1, sq_x, sq_10.y -2, h_x, _divide_by)
+						vtx1 = get_vertex_from_yx_coordinates(sq_10, sq_10.y -2, h_x-1)
+						vtx2 = get_vertex_from_yx_coordinates(sq_10, sq_10.y -2, h_x)
 					elif sq_y == 0 && sq_x > 0:
-						vtx1 = get_vertex_from_yx_coordinates(sq_y, sq_x-1, h_y-1, sq_01.x -2, _divide_by)
-						vtx2 = get_vertex_from_yx_coordinates(sq_y, sq_x-1, h_y-1, sq_01.x -1, _divide_by)
+						vtx1 = get_vertex_from_yx_coordinates(sq_01, h_y-1, sq_01.x -2)
+						vtx2 = get_vertex_from_yx_coordinates(sq_01, h_y-1, sq_01.x -1)
 						
 					sq_normals[0] = Plane(vtx1, vtx2, vtx3).normal
 					
@@ -119,14 +121,14 @@ func add_single_square(_heights, sq_y, sq_x, _mt_pxl, _divide_by, _offset = 0.0)
 					vtx2 = sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x)]
 					vtx3 = sq_heights[(h_y-1) * (sq_heights_x_size) + (h_x-1)]
 					if sq_y > 0:
-						vtx1 = get_vertex_from_yx_coordinates(sq_y-1, sq_x, sq_10.y -2, h_x-1, _divide_by)
-						vtx2 = get_vertex_from_yx_coordinates(sq_y-1, sq_x, sq_10.y -2, h_x, _divide_by)
+						vtx1 = get_vertex_from_yx_coordinates(sq_10, sq_10.y -2, h_x-1)
+						vtx2 = get_vertex_from_yx_coordinates(sq_10, sq_10.y -2, h_x)
 					sq_normals[h_x] = Plane(vtx1, vtx2, vtx3).normal
 					
 				elif h_y > 1 && h_x == 1:
 					if sq_x > 0:
-						vtx1 = get_vertex_from_yx_coordinates(sq_y, sq_x-1, h_y-1, sq_01.x -2, _divide_by)
-						vtx2 = get_vertex_from_yx_coordinates(sq_y, sq_x-1, h_y-2, sq_01.x -2, _divide_by)
+						vtx1 = get_vertex_from_yx_coordinates(sq_01, h_y-1, sq_01.x -2)
+						vtx2 = get_vertex_from_yx_coordinates(sq_01, h_y-2, sq_01.x -2)
 					vtx3 = sq_heights[(h_y-1) * (sq_heights_x_size)]
 					sq_normals[(h_y-1) * (sq_heights_x_size)] = Plane(vtx1, vtx2, vtx3).normal
 				

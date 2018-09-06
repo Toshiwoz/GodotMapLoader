@@ -229,7 +229,7 @@ func ArrangeTilesInGrid():
 				tile.translation.x = first_tile.translation.x + (first_tile.tileAABB.size.x * dif_x)
 				tile.translation.y = first_tile.translation.y - (first_tile.HeightOffset * first_tile.AltitudeMultiplier) + (tile.HeightOffset * tile.AltitudeMultiplier)
 				tile.translation.z = first_tile.translation.z + (first_tile.tileAABB.size.z * dif_y)
-			tile.ModifyArea(getTilexyz(tile.TileX+1, tile.TileY, tile.Zoom), getTilexyz(tile.TileX, tile.TileY+1, tile.Zoom))
+#			tile.ModifyArea(getTilexyz(tile.TileX+1, tile.TileY, tile.Zoom), getTilexyz(tile.TileX, tile.TileY+1, tile.Zoom))
 
 func _setTerrainNode():
 	terrain = find_node("terrain")
