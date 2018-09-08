@@ -53,7 +53,7 @@ func add_single_square(_heights, sq_y, sq_x, _mt_pxl, _divide_by, _offset = 0.0)
 	var sq_heights_y_size = _get_square_with_size(sq_y, sq_x, _divide_by).y
 	var sq_heights_x_size = _get_square_with_size(sq_y, sq_x, _divide_by).x
 	# I need to pre store square sizes of adjacent surfaces
-	var sq_11 = _get_square_with_size(sq_y-1, sq_x-1, _divide_by)
+#	var sq_11 = _get_square_with_size(sq_y-1, sq_x-1, _divide_by)
 	var sq_01 = _get_square_with_size(sq_y, sq_x-1, _divide_by)
 	var sq_10 = _get_square_with_size(sq_y-1, sq_x, _divide_by)
 	# half size is used to center the geometry
@@ -105,16 +105,9 @@ func add_single_square(_heights, sq_y, sq_x, _mt_pxl, _divide_by, _offset = 0.0)
 					vtx1 = sq_heights[0]
 					vtx2 = sq_heights[1]
 					vtx3 = sq_heights[sq_heights_x_size]
-					if sq_y > 0 && sq_x > 0:
-						vtx1 = get_vertex_from_yx_coordinates(sq_11, sq_11.y -1, sq_11.x -2)
-						vtx2 = get_vertex_from_yx_coordinates(sq_11, sq_11.y -2, sq_11.x -1)
-					elif sq_y > 0 && sq_x == 0:
+					if sq_y > 0:
 						vtx1 = get_vertex_from_yx_coordinates(sq_10, sq_10.y -2, h_x-1)
 						vtx2 = get_vertex_from_yx_coordinates(sq_10, sq_10.y -2, h_x)
-					elif sq_y == 0 && sq_x > 0:
-						vtx1 = get_vertex_from_yx_coordinates(sq_01, h_y-1, sq_01.x -2)
-						vtx2 = get_vertex_from_yx_coordinates(sq_01, h_y-1, sq_01.x -1)
-						
 					sq_normals[0] = Plane(vtx1, vtx2, vtx3).normal
 					
 				elif h_y == 1 && h_x > 1:
@@ -127,8 +120,8 @@ func add_single_square(_heights, sq_y, sq_x, _mt_pxl, _divide_by, _offset = 0.0)
 					
 				elif h_y > 1 && h_x == 1:
 					if sq_x > 0:
-						vtx1 = get_vertex_from_yx_coordinates(sq_01, h_y-1, sq_01.x -2)
-						vtx2 = get_vertex_from_yx_coordinates(sq_01, h_y-2, sq_01.x -2)
+						vtx1 = get_vertex_from_yx_coordinates(sq_01, h_y-2, sq_01.x -2)
+						vtx2 = get_vertex_from_yx_coordinates(sq_01, h_y-2, sq_01.x -1)
 					vtx3 = sq_heights[(h_y-1) * (sq_heights_x_size)]
 					sq_normals[(h_y-1) * (sq_heights_x_size)] = Plane(vtx1, vtx2, vtx3).normal
 				
