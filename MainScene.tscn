@@ -9,7 +9,7 @@
 
 _sections_unfolded = [ "Resource" ]
 
-[node name="MainScene" type="Spatial"]
+[node name="MainScene" type="Spatial" index="0"]
 
 script = ExtResource( 1 )
 _sections_unfolded = [ "Pause" ]
@@ -44,7 +44,7 @@ _sections_unfolded = [ "Shadow", "Transform" ]
 
 [node name="Camera" type="Camera" parent="." index="1"]
 
-transform = Transform( -1, 6.18172e-008, -6.18172e-008, 0, 0.707107, 0.707107, 8.74228e-008, 0.707107, -0.707107, 128, 148.224, -326.703 )
+transform = Transform( -3.6548e-008, 0.656294, -0.754506, 2.39777e-008, 0.754506, 0.656294, 1, 5.89494e-009, -4.33121e-008, -5423.43, 4647.49, 0 )
 keep_aspect = 1
 cull_mask = 1048575
 environment = null
@@ -53,10 +53,10 @@ v_offset = 0.0
 doppler_tracking = 0
 projection = 0
 current = true
-fov = 70.0
+fov = 45.0
 size = 1.0
 near = 0.05
-far = 2048.0
+far = 1.67772e+007
 _sections_unfolded = [ "Transform" ]
 
 [node name="Button_himalaya" type="Button" parent="." index="2"]
@@ -111,28 +111,29 @@ _sections_unfolded = [ "Material" ]
 [node name="TerrainLoader" type="Spatial" parent="." index="4"]
 
 script = ExtResource( 2 )
+_sections_unfolded = [ "Transform" ]
 __meta__ = {
 "_editor_icon": ExtResource( 3 )
 }
 access_token = "pk.eyJ1IjoiZGlnaXRhbGtpIiwiYSI6ImNqNXh1MDdibTA4bTMycnAweDBxYXBpYncifQ.daSatfva2eG-95QHWC9Mig"
-coordinates = Vector3( 86.9238, 27.9944, 12 )
+coordinates = Vector3( 86.9253, 27.9881, 12 )
 tilecoords = Vector3( 3037, 1716, 12 )
 HeighMultiplier = 1
-pxlx = 1
-pxly = 1
+pxlx = 4
+pxly = 20
 ArrangeTiles = true
 UseThreads = false
 
 [node name="MapboxWatermark" type="TextureRect" parent="." index="5"]
 
 modulate = Color( 1, 1, 1, 0.498039 )
-anchor_left = 1.0
-anchor_top = 0.0
-anchor_right = 1.0
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 0.0
 anchor_bottom = 1.0
-margin_left = -1004.0
-margin_top = 550.0
-margin_right = -884.0
+margin_left = 20.0
+margin_top = -50.0
+margin_right = 140.0
 margin_bottom = -20.0
 rect_pivot_offset = Vector2( 0, 0 )
 rect_clip_content = true
@@ -147,12 +148,12 @@ _sections_unfolded = [ "Anchor", "Grow Direction", "Rect", "Size Flags", "Textur
 
 [node name="MapboxLink" type="LinkButton" parent="." index="6"]
 
-anchor_left = 0.0
-anchor_top = 0.0
+anchor_left = 1.0
+anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = 682.0
-margin_top = 570.0
+margin_left = -342.0
+margin_top = -30.0
 margin_right = -276.0
 margin_bottom = -20.0
 rect_pivot_offset = Vector2( 0, 0 )
@@ -170,12 +171,12 @@ underline = 1
 
 [node name="OpenStreetMapLink" type="LinkButton" parent="." index="7"]
 
-anchor_left = 0.0
-anchor_top = 0.0
+anchor_left = 1.0
+anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = 762.0
-margin_top = 570.0
+margin_left = -262.0
+margin_top = -30.0
 margin_right = -146.0
 margin_bottom = -20.0
 rect_pivot_offset = Vector2( 0, 0 )
@@ -193,12 +194,12 @@ underline = 1
 
 [node name="ImproveLink" type="LinkButton" parent="." index="8"]
 
-anchor_left = 0.0
-anchor_top = 0.0
+anchor_left = 1.0
+anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = 892.0
-margin_top = 570.0
+margin_left = -132.0
+margin_top = -30.0
 margin_right = -16.0
 margin_bottom = -20.0
 rect_pivot_offset = Vector2( 0, 0 )

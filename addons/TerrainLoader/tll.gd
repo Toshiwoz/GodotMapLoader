@@ -193,18 +193,16 @@ func generate_terrain_meshes():
 					print("replacing tile " + tile.name)
 					tile.free()
 			var subdivide = 4
-			var total_tiles = subdivide * subdivide
-			for tile_number in range(1, total_tiles + 1):
-				var terr_node = tsh.instance()
-				terr_node.name = "xyz_%s_%s_%s" % [tilecoords.x, tilecoords.y, tilecoords.z]
-				terrain.add_child(terr_node)
-				terr_node.set_owner(scene_root)
-				terr_node.SubsetShift = true
-				terr_node.initialize_map(int(tilecoords.z), int(tilecoords.x), int(tilecoords.y), HeighMultiplier, subdivide, tile_number, TerrainHeightMap, TerrainTexture)
-				if UseThreads:
-					ThreadML.start(terr_node, "_call_set_shape", [terr_node])
-				else:
-					terr_node.SetMapShapeAndCollision()
+			var terr_node = tsh.instance()
+			terr_node.name = "xyz_%s_%s_%s" % [tilecoords.x, tilecoords.y, tilecoords.z]
+			terrain.add_child(terr_node)
+			terr_node.set_owner(scene_root)
+			terr_node.SubsetShift = true
+			terr_node.initialize_map(int(tilecoords.z), int(tilecoords.x), int(tilecoords.y), HeighMultiplier, subdivide, 1, TerrainHeightMap, TerrainTexture)
+			if UseThreads:
+				ThreadML.start(terr_node, "_call_set_shape", [terr_node])
+			else:
+				terr_node.SetMapShapeAndCollision()
 	if ArrangeTiles:
 		ArrangeTilesInGrid()
 		
@@ -227,7 +225,7 @@ func ArrangeTilesInGrid():
 				var dif_x = tile.TileX - first_tile.TileX
 				var dif_y =tile.TileY - first_tile.TileY
 				tile.translation.x = first_tile.translation.x + (first_tile.tileAABB.size.x * dif_x)
-				tile.translation.y = first_tile.translation.y - (first_tile.HeightOffset * first_tile.AltitudeMultiplier) + (tile.HeightOffset * tile.AltitudeMultiplier)
+				tile.translation.y = first_tile.translation.y - (first_tile.HeightOffset * first_tile.HeigthMultiplier) + (tile.HeightOffset * tile.HeigthMultiplier)
 				tile.translation.z = first_tile.translation.z + (first_tile.tileAABB.size.z * dif_y)
 #			tile.ModifyArea(getTilexyz(tile.TileX+1, tile.TileY, tile.Zoom), getTilexyz(tile.TileX, tile.TileY+1, tile.Zoom))
 
