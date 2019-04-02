@@ -61,14 +61,16 @@ func _setDivideInto(_newvalue):
 func _setMap(_newvalue):
 	if TerrainHeightMapPath != _newvalue:
 		TerrainHeightMapPath = _newvalue
-		TerrainImage.load(TerrainHeightMapPath)
-		SetMapShapeAndCollision()
+		if TerrainHeightMapPath is String:
+			TerrainImage.load(TerrainHeightMapPath)
+			SetMapShapeAndCollision()
 		
 func _setMapTexture(_newvalue):
 	if TerrainTexturePath != _newvalue:
 		TerrainTexturePath = _newvalue
-		TerrainTextureImage.load(TerrainTexturePath)
-		SetMapShapeAndCollision()
+		if TerrainTexturePath is String:
+			TerrainTextureImage.load(TerrainTexturePath)
+			SetMapShapeAndCollision()
 	
 func _FixSubset(_subsVal):
 	NumberOfSections = DivideInto * DivideInto
@@ -114,10 +116,10 @@ func SetMapShapeAndCollision(params = null):
 #		HeightMap = hmTool.GenerateHeightMap(TerrainImage, TerrainTextureImage, Subset, DivideInto)
 #		$TerrainMesh.mesh = hmTool.createMesh(HeightMap, Size, HeigthMultiplier, Zoom, Subset, DivideInto, SubsetShift, MeshPath)
 
-		if Zoom > 6:
-			$TerrainMesh.mesh = hmTool.createMeshFromImage(TerrainImage, TerrainTextureImage, Size, HeigthMultiplier, Zoom, TileX, TileY, Subset, DivideInto, true)
-		else:
-			$TerrainMesh.mesh = hmTool.CreateMeshFromImage_sph(TerrainImage, TerrainTextureImage, Size, HeigthMultiplier, Zoom, TileX, TileY, Subset, DivideInto, false)
+#		if Zoom > 6:
+		$TerrainMesh.mesh = hmTool.createMeshFromImage(TerrainImage, TerrainTextureImage, Size, HeigthMultiplier, Zoom, TileX, TileY, Subset, DivideInto, true)
+#		else:
+#			$TerrainMesh.mesh = hmTool.CreateMeshFromImage_sph(TerrainImage, TerrainTextureImage, Size, HeigthMultiplier, Zoom, TileX, TileY, Subset, DivideInto, false)
 		ShapeMesh = $TerrainMesh.mesh
 		HeightOffset = hmTool.max_min_height.min_height
 		AltitudeMultiplier = hmTool.altitude_multiplier
