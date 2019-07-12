@@ -45,7 +45,7 @@ func _instance_nodes():
 	if tl == null:
 		tl = tls.instance()
 		self.add_child(tl)
-#		tl.set_owner(self)
+		tl.set_owner(self)
 	if MapLoaderHeightMap == null:
 		MapLoaderHeightMap = tl.find_node("MapLoaderHeightMap")
 		MapLoaderHeightMap.connect("request_completed", self, "_on_MapLoaderHeightMap_request_completed")
